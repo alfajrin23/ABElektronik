@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Laporan Pendapatan Mingguan</title>
+  <style>
+    /* Reset */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      transition: background 0.5s ease;
+    }
+    .container {
+      max-width: 900px;
+      width: 100%;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.1);
+      padding: 30px 30px 40px 30px;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      max-height: 700px;
+      transition: transform 0.5s ease;
+      overflow-y: auto;
+    }
+    h1 {
+      font-weight: 800;
+      font-size: 2.2rem;
+      color: #1f2937;
+      margin-bottom: 25px;
+      position: relative;
+      text-align: center;
+      letter-spacing: 0.05em;
+      font-family: 'Segoe UI Black', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    h1::after {
+      content: "";
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 5px;
+      background: linear-gradient(90deg, #2563eb, #10b981);
+      border-radius: 3px;
+      box-shadow: 0 0 10px #2563ebaa, 0 0 10px #10b981aa;
+    }
+    .filter-section {
+      display: flex;
+      align-items: flex-end;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 130px;
+    }
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #334155;
+      user-select: none;
+    }
+    select {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1.5px solid #cbd5e1;
+      font-size: 1rem;
+      color: #1e293b;
+      background-color: #f8fafc;
+      transition: border-color 0.3s ease;
+      cursor: pointer;
+    }
+    select:hover, select:focus {
+      border-color: #2563eb;
+      outline: none;
+      box-shadow: 0 0 8px #2563eb99;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 6px 15px rgba(37, 99, 235, 0.5);
+      transition: background-color 0.3s ease, transform 0.25s ease, box-shadow 0.25s ease;
+      user-select: none;
+      white-space: nowrap;
+    }
+    button:hover {
+      background-color: #1e40af;
+      transform: scale(1.05);
+      box-shadow: 0 10px 25px rgba(30, 64, 175, 0.6);
+    }
+    button:active {
+      transform: scale(0.95);
+      box-shadow: 0 5px 16px rgba(30, 64, 175, 0.5);
+    }
+    button svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+    }
+    button:hover svg {
+      transform: scale(1.2);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 1rem;
+      background-color: #f9fafb;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+      word-break: break-word;
+    }
+    thead tr {
+      background: linear-gradient(90deg, #2563eb, #10b981);
+      color: white;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    th, td {
+      padding: 14px 15px;
+      text-align: center;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    tbody tr:hover {
+      background-color: #dbeafe;
+      transition: background-color 0.3s ease;
+    }
+    caption {
+      caption-side: bottom;
+      padding-top: 10px;
+      font-style: italic;
+      color: #64748b;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    .summary {
+      margin-top: 15px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e293b;
+      text-align: right;
+    }
+    /* Responsive */
+    @media (max-width: 720px) {
+      .container {
+        max-width: 100%;
+        padding: 20px;
+      }
+    }
+    @media (max-width: 480px) {
+      .filter-section {
+        flex-direction: column;
+        gap: 12px;
+      }
+      button {
+        justify-content: center;
+        width: 100%;
+      }
+      .input-group {
+        width: 100%;
+      }
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+      tr {
+        margin-bottom: 15px;
+        border-bottom: 2px solid #eee;
+      }
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: left;
+      }
+      td:before {
+        position: absolute;
+        left: 12px;
+        top: 14px;
+        white-space: nowrap;
+        font-weight: 600;
+        color: #334155;
+      }
+      td:nth-of-type(1):before { content: "Tanggal"; }
+      td:nth-of-type(2):before { content: "Nama Barang"; }
+      td:nth-of-type(3):before { content: "Qty"; }
+      td:nth-of-type(4):before { content: "Harga"; }
+      td:nth-of-type(5):before { content: "Total"; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container" role="main" aria-label="Laporan Pendapatan Mingguan">
+    <h1 id="page-title">Laporan Pendapatan Mingguan</h1>
+    <section class="filter-section" aria-label="Filter laporan pendapatan mingguan">
+      <div class="input-group">
+        <label for="month-filter">Pilih Bulan</label>
+        <select id="month-filter" aria-label="Pilih bulan laporan pendapatan"></select>
+      </div>
+      <div class="input-group">
+        <label for="week-filter">Pilih Minggu</label>
+        <select id="week-filter" aria-label="Pilih minggu laporan pendapatan"></select>
+      </div>
+      <button id="refresh-btn" type="button" aria-label="Refresh Tampilan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M4 4v5h.582M20 20v-5h-.581M16.5 4.5a7 7 0 1 0-9.9 9.9l.7-.7" />
+        </svg>
+        Refresh
+      </button>
+      <button id="pdf-btn" type="button" aria-label="Simpan PDF">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M9 14h6M9 18h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Simpan PDF
+      </button>
+    </section>
+    <section class="table-section" aria-label="Data tabel laporan pendapatan mingguan">
+      <table aria-describedby="table-desc" id="report-table">
+        <caption id="table-desc">Tabel data laporan pendapatan per transaksi pada minggu dan bulan yang dipilih.</caption>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Nama Barang</th>
+            <th>Qty</th>
+            <th>Harga (Rp)</th>
+            <th>Total (Rp)</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+      <div class="summary" aria-live="polite" aria-atomic="true" style="margin-top: 15px; font-weight: 700; font-size: 1.1rem; color: #1e293b; text-align: right;">
+        Total Pendapatan Mingguan: <span id="total-revenue">Rp 0</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const pageTitle = document.getElementById('page-title');
+    const monthFilter = document.getElementById('month-filter');
+    const weekFilter = document.getElementById('week-filter');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const pdfBtn = document.getElementById('pdf-btn');
+    const tableBody = document.getElementById('table-body');
+    const totalRevenueSpan = document.getElementById('total-revenue');
+
+    let transactions = [];
+
+    // Populate month select (1-12 with Indonesian month names)
+    function populateMonthFilter() {
+      const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      months.forEach((month, i) => {
+        const option = document.createElement('option');
+        option.value = i + 1;
+        option.textContent = month;
+        monthFilter.appendChild(option);
+      });
+      monthFilter.value = (new Date()).getMonth() + 1;
+    }
+
+    // Populate week select (1-5)
+    function populateWeekFilter() {
+      for(let i=1; i<=5; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = `Minggu ke-${i}`;
+        weekFilter.appendChild(option);
+      }
+      weekFilter.value = 1;
+    }
+
+    // Generate sample transactions for selected month
+    function generateTransactions(year, month) {
+      const items = [
+        {item: 'Produk A', price: 10000},
+        {item: 'Produk B', price: 25000},
+        {item: 'Produk C', price: 50000},
+        {item: 'Produk D', price: 15000},
+        {item: 'Produk E', price: 5000}
+      ];
+      const transactions = [];
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const totalTransactions = Math.floor(daysInMonth * (Math.random() * 2 + 1)); // 1-3 transactions per day approx
+
+      for(let i=0; i<totalTransactions; i++) {
+        const day = Math.floor(Math.random() * daysInMonth) + 1;
+        const dateObj = new Date(year, month - 1, day);
+        const item = items[Math.floor(Math.random() * items.length)];
+        const qty = Math.floor(Math.random() * 20) + 1;
+        transactions.push({
+          date: dateObj.toISOString().split('T')[0],
+          item: item.item,
+          qty,
+          price: item.price,
+          total: qty * item.price,
+          dayOfMonth: day
+        });
+      }
+      transactions.sort((a,b) => a.date.localeCompare(b.date));
+      return transactions;
+    }
+
+    // Calculate week number of month for given day of month
+    // Week 1: days 1-7, Week 2: 8-14, etc.
+    function getWeekOfMonth(day) {
+      return Math.ceil(day / 7);
+    }
+
+    // Filter transactions by selected week
+    function filterTransactionsByWeek(transactions, week) {
+      return transactions.filter(tx => getWeekOfMonth(tx.dayOfMonth) === parseInt(week));
+    }
+
+    // Format currency Rp
+    function formatCurrency(val) {
+      return val.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+    }
+
+    // Render transactions in table
+    function renderTable(data) {
+      tableBody.innerHTML = '';
+      data.forEach(tx => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${tx.date}</td>
+          <td>${tx.item}</td>
+          <td>${tx.qty}</td>
+          <td>${formatCurrency(tx.price)}</td>
+          <td>${formatCurrency(tx.total)}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    // Update total revenue display
+    function updateTotal(data) {
+      const total = data.reduce((sum, tx) => sum + tx.total, 0);
+      totalRevenueSpan.textContent = formatCurrency(total);
+    }
+
+    // Refresh view based on filters
+    function refreshView() {
+      const year = new Date().getFullYear();
+      const month = parseInt(monthFilter.value);
+      const week = parseInt(weekFilter.value);
+      transactions = generateTransactions(year, month);
+      const weekTransactions = filterTransactionsByWeek(transactions, week);
+      renderTable(weekTransactions);
+      updateTotal(weekTransactions);
+      pageTitle.textContent = `Laporan Pendapatan Mingguan (${monthFilter.options[month-1].text}, Minggu ke-${week})`;
+    }
+
+    monthFilter.addEventListener('change', () => {
+      // Reset week to 1 when month changes
+      weekFilter.value = 1;
+      refreshView();
+    });
+
+    weekFilter.addEventListener('change', refreshView);
+
+    refreshBtn.addEventListener('click', refreshView);
+
+    pdfBtn.addEventListener('click', () => {
+      const year = new Date().getFullYear();
+      const monthText = monthFilter.options[monthFilter.selectedIndex].text;
+      const week = weekFilter.value;
+      const dataRows = tableBody.innerHTML;
+      const totalText = totalRevenueSpan.textContent;
+      const style = `
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px;}
+          h1 { text-align: center; color: #2563eb; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px;}
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+          th { background: linear-gradient(90deg, #2563eb, #10b981); color: white; }
+          caption { caption-side: bottom; font-style: italic; color: #555; margin-top: 8px;}
+          .summary { font-weight: 700; font-size: 1.1rem; margin-top: 15px; text-align: right; }
+        </style>
+      `;
+      const html = `
+      <html>
+        <head><title>Laporan Pendapatan Mingguan ${monthText} Minggu ke-${week}</title>${style}</head>
+        <body>
+          <h1>Laporan Pendapatan Mingguan (${monthText}, Minggu ke-${week})</h1>
+          <table>
+            <caption>Laporan pendapatan transaksi untuk minggu ${week} bulan ${monthText} tahun ${year}</caption>
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Nama Barang</th>
+                <th>Qty</th>
+                <th>Harga (Rp)</th>
+                <th>Total (Rp)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${dataRows}
+            </tbody>
+          </table>
+          <div class="summary">Total Pendapatan Mingguan: ${totalText}</div>
+        </body>
+      </html>
+      `;
+      const newWindow = window.open();
+      newWindow.document.write(html);
+      newWindow.document.close();
+      newWindow.focus();
+      newWindow.print();
+    });
+
+    // Initialize
+    populateMonthFilter();
+    populateWeekFilter();
+    refreshView();
+  </script>
+</body>
+</html>
+</content>
+</create_file>

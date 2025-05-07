@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Dashboard - ABElektronik</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    :root {
+      --color-bg-light: #f9f9f9;
+      --color-bg-dark: #121212;
+      --color-text-light: #222;
+      --color-text-dark: #eee;
+      --color-primary-light: #007bff;
+      --color-primary-dark: #3399ff;
+      --color-shadow-light: rgba(0,0,0,0.1);
+      --color-shadow-dark: rgba(0,0,0,0.8);
+    }
+    .copyright-container {
+      display: flex;
+      justify-content: center; /* Memusatkan secara horizontal */
+      align-items: center; /* Memusatkan secara vertikal (jika diperlukan) */
+      width: 100%; /* Memastikan container mengambil lebar penuh */
+      padding: 10px 0; /* Jarak atas dan bawah */
+    }
+    .copyright-link {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .copyright {
+      font-size: 0.8rem;
+      margin: 0;
+      color: #2676d1;
+      transition: color 0.3s ease;
+    }
+
+    body.dark .copyright {
+      color: #bbb;
+    }
+
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--color-bg-light);
+      color: var(--color-text-light);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-height: 600px;
+      max-width: 350px;
+      margin-left: auto;
+      margin-right: auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    body.dark {
+      background-color: var(--color-bg-dark);
+      color: var(--color-text-dark);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--color-bg-light);
+      padding: 12px 16px;
+      box-shadow: 0 2px 5px var(--color-shadow-light);
+      flex-shrink: 0;
+      transition: background-color 0.3s ease;
+    }
+
+    body.dark header {
+      background-color: #1c1c1c;
+      box-shadow: 0 2px 8px var(--color-shadow-dark);
+    }
+
+    .profile-photo {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-image: url('https://i.pravatar.cc/48');
+      background-size: cover;
+      background-position: center;
+      flex-shrink: 0;
+      border: 1.5px solid #ccc;
+      transition: border-color 0.3s ease;
+    }
+
+    body.dark .profile-photo {
+      border-color: #555;
+    }
+
+    .center-section {
+      flex-grow: 1;
+      text-align: center;
+      user-select: none;
+    }
+
+    .center-section h1 {
+      font-weight: 600;
+      margin: 0;
+      font-size: 1.25rem;
+      line-height: 1.2;
+      color: var(--color-text-light);
+      transition: color 0.3s ease;
+    }
+
+    body.dark .center-section h1 {
+      color: var(--color-text-dark);
+    }
+
+    .center-section p {
+      margin: 2px 0 0 0;
+      font-size: 0.8rem;
+      color: #666;
+      font-weight: 400;
+      line-height: 1.2;
+      transition: color 0.3s ease;
+    }
+
+    body.dark .center-section p {
+      color: #bbb;
+    }
+
+    .btn-shutdown {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background-color 0.2s ease-in-out;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e03e2f;
+    }
+
+    .btn-shutdown:hover,
+    .btn-shutdown:focus {
+      background-color: #f8d7d4;
+      outline: none;
+    }
+
+    /* Shutdown icon (power symbol) */
+    .btn-shutdown svg {
+      width: 24px;
+      height: 24px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    main {
+      flex-grow: 1;
+      background: var(--color-bg-light);
+      margin: 12px 16px 60px 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px var(--color-shadow-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      overflow: hidden;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    }
+
+    body.dark main {
+      background: #222;
+      box-shadow: 0 2px 8px var(--color-shadow-dark);
+      color: var(--color-text-dark);
+    }
+
+    .revenue-container {
+      margin-top: 20px; /* Tambahkan jarak atas jika diperlukan */
+    }
+
+    /* Scroll container for multiple charts */
+    #chart-scroll-container {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+    }
+
+    .charts-wrapper {
+      display: flex;
+      gap: 16px;
+      min-width: 680px; /* Ensures horizontal scroll with two 320px charts plus gap */
+    }
+
+    .chart-box {
+      flex: none;
+      background-color: #f0f0f0;
+      border-radius: 8px;
+      width: 320px;
+      height: 160px;
+      position: relative;
+    }
+
+    body.dark .chart-box {
+      background-color: #333;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 320px;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .revenue-container {
+      width: 100%;
+      max-width: 320px;
+      background: #ffffff;
+      color: #000000;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 4px 20px rgba(0, 123, 255, 0.4);
+      margin-top: 20px; /* Menambahkan margin atas untuk memindahkan tampilan pemasukan ke bawah */
+      user-select: none;
+      font-weight: 600;
+      font-size: 1.25rem;
+      text-align: center;
+      border-left: 4px solid #27ae60;
+    }
+
+    .btn-action {
+      flex: 1;
+      background-color: var(--color-primary-light);
+      border: none;
+      color: white;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+    }
+
+    .btn-action:hover,
+    .btn-action:focus {
+      background-color: var(--color-primary-dark);
+      outline: none;
+      box-shadow: 0 0 8px rgba(51, 153, 255, 0.6);
+    }
+
+    .btn-action svg {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 6px;
+      stroke: white;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .btn-action.data-barang {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btn-action.history-barang {
+      background-color: #27ae60;
+      color: white;
+    }
+
+    .btn-action.laporan {
+      background-color: #ff9800;
+      color: white;
+    }
+
+
+    nav.bottom-nav {
+      flex-shrink: 0;
+      background: var(--color-bg-light);
+      box-shadow: 0 -1px 5px var(--color-shadow-light);
+      display: flex;
+      justify-content: space-around;
+      padding: 0.4rem 0;
+      border-top-left-radius: 14px;
+      border-top-right-radius: 14px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 350px;
+      margin-left: auto;
+      margin-right: auto;
+      z-index: 1000;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    body.dark nav.bottom-nav {
+      background: #1c1c1c;
+      box-shadow: 0 -1px 8px var(--color-shadow-dark);
+    }
+
+    nav.bottom-nav button {
+      background: transparent;
+      border: none;
+      color: var(--color-primary-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 6px;
+      user-select: none;
+      transition: color 0.3s ease;
+      flex-grow: 1;
+      max-width: 120px;
+      position: relative;
+      z-index: 1;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    nav.bottom-nav button svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--color-primary-light);
+      stroke-width: 2;
+      fill: none;
+      margin-bottom: 2px;
+      transition: stroke 0.3s ease;
+    }
+
+    nav.bottom-nav button:hover,
+    nav.bottom-nav button:focus {
+      color: var(--color-primary-dark);
+      outline: none;
+    }
+
+    nav.bottom-nav button:hover svg,
+    nav.bottom-nav button:focus svg {
+      stroke: var(--color-primary-dark);
+    }
+
+    nav.bottom-nav button.scan-btn {
+      background-color: var(--color-primary-light);
+      color: white;
+      flex-grow: 1.6;
+      box-shadow: 0 6px 15px rgba(0, 123, 255, 0.7);
+      transform: translateY(-14px);
+      border-radius: 20px;
+      z-index: 10;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    nav.bottom-nav button.scan-btn svg {
+      stroke: white;
+      margin-bottom: 6px;
+      width: 28px;
+      height: 28px;
+    }
+
+    nav.bottom-nav button.scan-btn:hover,
+    nav.bottom-nav button.scan-btn:focus {
+      background-color: var(--color-primary-dark);
+      box-shadow: 0 8px 20px rgba(0, 86, 179, 0.9);
+      color: white;
+      outline: none;
+      transform: translateY(-16px) scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="copyright-container">
+    <a href="https://alfajrin23.github.io/personal_portofolio/" class="copyright-link">
+      <p class="copyright">by Al Fajrin A A &copy; 2025</p>
+    </a>
+  </div>
+
+  <header>
+    <a href="profilsetting.html" class="profile-photo" aria-label="Profile photo"></a>
+    <div class="center-section">
+      <a href="https://maps.app.goo.gl/fAhFceGrUhFyTBsDA" class="company-name">
+        <h1>ABElektronik</h1>
+      </a>
+      <a href="https://maps.app.goo.gl/fAhFceGrUhFyTBsDA" class="company-address">
+        <p>Jl. Raya Cirebon - Bandung No.1, Panjalin Kidul</p>
+      </a>
+    </div>
+    <button class="btn-shutdown" title="Close Application" aria-label="Close Application" onclick="handleShutdown()">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 2v10M16.24 7.76a6 6 0 1 1-8.48 0" />
+      </svg>
+    </button>
+  </header>
+
+  <main>
+    <div id="chart-scroll-container" aria-label="Grafik Bergulir">
+      <div class="charts-wrapper">
+        <div class="chart-box">
+          <canvas id="chart1" aria-label="Grafik Stok Bulanan #1" role="img"></canvas>
+        </div>
+        <div class="chart-box">
+          <canvas id="chart2" aria-label="Grafik Stok Bulanan #2" role="img"></canvas>
+        </div>
+      </div>
+    </div>
+  
+    <div class="button-group" role="group" aria-label="Navigasi">
+      <button type="button" class="btn-action data-barang" title="Data Barang" aria-label="Data Barang" onclick="window.location.href='databarang.html'">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect x="3" y="5" width="18" height="14" rx="2" ry="2" />
+          <path d="M3 10h18" />
+        </svg>
+        Data Barang
+      </button>
+      <button type="button" class="btn-action history-barang" title="History Barang" aria-label="History Barang" onclick="window.location.href='history.html'">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="8" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+        History Barang
+      </button>
+      <button type="button" class="btn-action laporan" title="Laporan" aria-label="Laporan" onclick="window.location.href='laporan.html'">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 4h16v16H4z" />
+          <path d="M8 9h8" />
+          <path d="M8 13h5" />
+          <path d="M8 17h5" />
+        </svg>
+        Laporan
+      </button>
+    </div>
+  
+    <div class="revenue-container">
+      <div class="revenue-display-wrapper">
+        <div class="revenue-label">Pendapatan Hari Ini:</div>
+        <div class="revenue-amount">Rp 1.000.000.000</div>
+      </div>
+    </div>
+  </main>
+  
+
+  <nav class="bottom-nav" role="navigation" aria-label="Navigasi Bawah">
+    <button title="Dashboard" aria-label="Dashboard" onclick="alert('Dashboard clicked')">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M3 13h8V3H3v10zM13 21h8v-6h-8v6zM13 3v6h8V3h-8zM3 21h8v-4H3v4z" />
+      </svg>
+      Dashboard
+    </button>
+    <button class="scan-btn" title="Scan Transaksi" aria-label="Scan Transaksi" onclick="alert('Scan Transaksi clicked')">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="3" y="3" width="18" height="18" rx="3" ry="3" />
+        <path d="M7 7h10M7 12h10M7 17h6" />
+      </svg>
+      Scan
+    </button>
+    <button title="Pengaturan" aria-label="Pengaturan" onclick="window.location.href='pengaturan.html'">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+      Pengaturan
+    </button>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    function handleShutdown() {
+      alert('Close application');
+    }
+
+    const ctx1 = document.getElementById('chart1').getContext('2d');
+    const ctx2 = document.getElementById('chart2').getContext('2d');
+
+    const gradient1 = ctx1.createLinearGradient(0, 0, 0, 220);
+    gradient1.addColorStop(0, 'rgba(56,142,60,0.6)');
+    gradient1.addColorStop(1, 'rgba(56,142,60,0)');
+
+    const gradient2 = ctx2.createLinearGradient(0, 0, 0, 220);
+    gradient2.addColorStop(0, 'rgba(0,123,255,0.6)');
+    gradient2.addColorStop(1, 'rgba(0,123,255,0)');
+
+    new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+          label: 'Stok Barang A',
+          data: [50, 45, 63, 72, 70, 85, 92, 100, 90, 87, 85, 90],
+          fill: true,
+          backgroundColor: gradient1,
+          borderColor: '#388e3c',
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#388e3c',
+          pointHoverRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: '#eee',
+            },
+            ticks: {
+              stepSize: 10,
+              color: '#555',
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: '#555'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#333'
+            }
+          }
+        }
+      }
+    });
+
+    new Chart(ctx2, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+          label: 'Stok Barang B',
+          data: [30, 28, 35, 50, 55, 60, 65, 70, 65, 60, 58, 62],
+          fill: true,
+          backgroundColor: gradient2,
+          borderColor: '#007bff',
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#007bff',
+          pointHoverRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: '#eee',
+            },
+            ticks: {
+              stepSize: 10,
+              color: '#555',
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: '#555'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#333'
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
+

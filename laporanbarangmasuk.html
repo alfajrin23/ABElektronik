@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Laporan Barang Masuk</title>
+    <style>
+        /* Reset some default */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            transition: background 0.5s ease;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            padding: 30px 25px 40px 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            max-height: 600px;
+            transition: transform 0.5s ease;
+        }
+        h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            color: #222;
+            margin-bottom: 30px;
+            text-align: center;
+            letter-spacing: 0.06em;
+            position: relative;
+            font-family: 'Segoe UI Black', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        h1::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -8px;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            border-radius: 2px;
+            transform: translateX(-50%);
+            box-shadow: 0 0 8px #3b82f6aa, 0 0 8px #10b981aa;
+        }
+        .filter-section {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 0.9rem;
+            color: #444;
+            margin-bottom: 6px;
+            display: block;
+            font-weight: 600;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        input[type="date"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            width: 100%;
+            transition: border-color 0.3s ease;
+            font-size: 1rem;
+        }
+        input[type="date"]:focus {
+            border-color: #3b82f6;
+            outline: none;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-start;
+        }
+        button {
+            background-color: #3b82f6; /* Blue */
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        button:hover {
+            background-color: #2563eb;
+            transform: scale(1.05);
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        #reset-btn {
+            background-color: #ef4444; /* Red */
+            padding: 10px;
+            width: 44px;
+            justify-content: center;
+        }
+        #reset-btn:hover {
+            background-color: #b91c1c;
+        }
+        #pdf-btn {
+            background-color: #10b981; /* Green */
+        }
+        #pdf-btn:hover {
+            background-color: #047857;
+        }
+        /* Filter button with icon only */
+        #filter-btn {
+            background-color: #6b7280; /* Grey */
+            border-radius: 8px;
+            padding: 10px;
+            width: 44px;
+            height: 44px;
+            justify-content: center;
+        }
+        #filter-btn:hover {
+            background-color: #4b5563;
+        }
+        button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        button:hover svg {
+            transform: scale(1.2);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.95rem;
+        }
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            word-break: break-word;
+        }
+        th {
+            background-color: #f1f1f1;
+            color: #333;
+            font-weight: 700;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        /* Responsive */
+        @media (max-width: 480px) {
+            .filter-section {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 10px;
+            }
+            .btn-group {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="container" role="main" aria-label="Laporan Barang Masuk">
+        <h1>Laporan Barang Masuk <span style="color:#10b981; font-weight: 700;">Terbaru</span></h1>
+        <section class="filter-section" aria-label="Filter data laporan">
+            <div class="input-group">
+                <label for="start-date">Tanggal Awal</label>
+                <input type="date" id="start-date" aria-label="Tanggal Awal" />
+            </div>
+            <div class="input-group">
+                <label for="end-date">Tanggal Akhir</label>
+                <input type="date" id="end-date" aria-label="Tanggal Akhir" />
+            </div>
+            <button id="filter-btn" type="button" aria-label="Filter Data">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M3 5h18M6 12h12M10 19h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="btn-group">
+                <button id="reset-btn" type="button" aria-label="Reset Filter">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button id="pdf-btn" type="button" aria-label="Simpan PDF">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M9 14h6M9 18h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Simpan PDF
+                </button>
+            </div>
+        </section>
+        <section class="table-section" aria-label="Data tabel laporan barang masuk">
+            <table aria-describedby="table-desc">
+                <caption id="table-desc" style="caption-side: bottom; text-align:left; padding-top:8px; font-size: 0.85rem; color:#666;">Tabel data nama barang, tanggal, dan jumlah barang masuk.</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Nama Barang</th>
+                        <th scope="col">Tanggal</th>
+                        <th scope="col">Jumlah</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <tr>
+                        <td>Produk A</td>
+                        <td>2024-06-05</td>
+                        <td>10</td>
+                    </tr>
+                    <tr>
+                        <td>Produk B</td>
+                        <td>2024-06-10</td>
+                        <td>5</td>
+                    </tr>
+                    <tr>
+                        <td>Produk C</td>
+                        <td>2024-06-15</td>
+                        <td>13</td>
+                    </tr>
+                    <tr>
+                        <td>Produk D</td>
+                        <td>2024-06-20</td>
+                        <td>8</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        const startDateInput = document.getElementById('start-date');
+        const endDateInput = document.getElementById('end-date');
+        const filterBtn = document.getElementById('filter-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const tableBody = document.getElementById('table-body');
+
+        // Set default dates to today
+        const today = new Date().toISOString().split('T')[0];
+        startDateInput.value = today;
+        endDateInput.value = today;
+
+        // Store initial rows for reset
+        const initialRows = Array.from(tableBody.rows).map(row => row.cloneNode(true));
+
+        function filterTable() {
+            const startDateValue = startDateInput.value;
+            const endDateValue = endDateInput.value;
+
+            tableBody.innerHTML = '';
+
+            const filteredRows = initialRows.filter(row => {
+                const dateText = row.cells[1].textContent.trim();
+                if (!dateText) return false;
+
+                if (startDateValue && endDateValue) {
+                    return dateText >= startDateValue && dateText <= endDateValue;
+                } else if (startDateValue) {
+                    return dateText >= startDateValue;
+                } else if (endDateValue) {
+                    return dateText <= endDateValue;
+                }
+                return true;
+            });
+
+            filteredRows.forEach(row => {
+                tableBody.appendChild(row);
+            });
+        }
+
+        filterBtn.addEventListener('click', filterTable);
+
+        resetBtn.addEventListener('click', () => {
+            startDateInput.value = today;
+            endDateInput.value = today;
+            tableBody.innerHTML = '';
+            initialRows.forEach(row => {
+                tableBody.appendChild(row.cloneNode(true));
+            });
+        });
+
+        // PDF save functionality
+        document.getElementById('pdf-btn').addEventListener('click', () => {
+            const style = `
+                <style>
+                    table {width:100%; border-collapse: collapse;}
+                    th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+                    th {background-color:#f1f1f1;}
+                    h1 {text-align:center; font-family: Arial,sans-serif;}
+                    body {font-family: Arial,sans-serif; margin:30px;}
+                </style>
+            `;
+            let html = '<html><head><title>Laporan Barang Masuk PDF</title>' + style + '</head><body>';
+            html += '<h1>Laporan Barang Masuk</h1>';
+            html += '<table><thead><tr><th>Nama Barang</th><th>Tanggal</th><th>Jumlah</th></tr></thead><tbody>';
+            const rows = tableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                html += '<tr>' + row.innerHTML + '</tr>';
+            });
+            html += '</tbody></table></body></html>';
+            const newWindow = window.open();
+            newWindow.document.write(html);
+            newWindow.document.close();
+            newWindow.focus();
+            newWindow.print();
+        });
+
+        // Apply initial filter to match default dates
+        window.addEventListener('DOMContentLoaded', () => {
+            filterTable();
+        });
+    </script>
+</body>
+</html>
+</content>
+</create_file>

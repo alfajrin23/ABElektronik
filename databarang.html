@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Stok Data Barang - ABElektronik</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #e6f0ff;
+      color: #004a99;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px 16px 80px 16px;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    header {
+      margin-bottom: 24px;
+      border-bottom: 2px solid #0056cc;
+      padding-bottom: 8px;
+    }
+    header h1 {
+      font-weight: 700;
+      font-size: 1.8rem;
+      margin: 0;
+      letter-spacing: 1px;
+      color: #003d99;
+    }
+    .search-container {
+      margin-bottom: 16px;
+    }
+    input[type="search"] {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 1rem;
+      border: 2px solid #0056cc;
+      border-radius: 8px;
+      outline-offset: 2px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box;
+      color: #004a99;
+      background-color: #ffffff;
+      font-weight: 500;
+    }
+    input[type="search"]::placeholder {
+      color: #8cb0ff;
+      font-weight: 500;
+    }
+    input[type="search"]:focus {
+      border-color: #003d99;
+      box-shadow: 0 0 8px rgba(0, 86, 204, 0.7);
+      outline: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #f0f8ff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+    thead {
+      background-color: #0056cc;
+      color: white;
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #aaccee;
+      vertical-align: middle;
+      font-weight: 500;
+    }
+    tbody tr:hover {
+      background-color: #d0e3ff;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      height: 40px;
+    }
+    button.action-btn {
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      line-height: 1;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      stroke-width: 2;
+      width: 32px;
+      height: 32px;
+    }
+    /* Edit button styling - blue */
+    button.edit-btn {
+      background-color: #007bff;
+      color: white;
+    }
+    button.edit-btn:hover {
+      background-color: #0056b3;
+    }
+    /* Delete button styling - red */
+    button.delete-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+    button.delete-btn:hover {
+      background-color: #a71d2a;
+    }
+    button.action-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+    }
+    .bottom-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    button.primary-btn {
+      background-color: #0056cc;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 86, 204, 0.7);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button.primary-btn:hover {
+      background-color: #004a99;
+      box-shadow: 0 4px 10px rgba(0, 74, 153, 0.85);
+      outline: none;
+    }
+    button.primary-btn svg {
+      stroke: white;
+      width: 20px;
+      height: 20px;
+    }
+    @media (max-width: 480px) {
+      body {
+        padding: 16px 12px 80px 12px;
+        max-width: 100%;
+      }
+      .bottom-buttons {
+        justify-content: center;
+      }
+      button.primary-btn {
+        flex: 1 1 45%;
+        justify-content: center;
+      }
+    }
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+    }
+    .modal {
+      background: white;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      padding: 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      position: relative;
+      font-weight: 500;
+      color: #004a99;
+      box-sizing: border-box;
+    }
+    .modal h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #003d99;
+      font-size: 1.5rem;
+      font-weight: 700;
+      border-bottom: 2px solid #0056cc;
+      padding-bottom: 6px;
+      letter-spacing: 0.03em;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 1rem;
+      border: 2px solid #0056cc;
+      border-radius: 8px;
+      outline-offset: 2px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      color: #004a99;
+      background-color: #fff;
+      font-weight: 500;
+      box-sizing: border-box;
+    }
+    input[type="text"]::placeholder, input[type="number"]::placeholder {
+      color: #8cb0ff;
+      font-weight: 500;
+    }
+    input[type="text"]:focus, input[type="number"]:focus {
+      border-color: #003d99;
+      box-shadow: 0 0 8px rgba(0, 86, 204, 0.7);
+      outline: none;
+    }
+    button.scan-barcode-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.3s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    button.scan-barcode-btn:hover {
+      background-color: #0056b3;
+      outline: none;
+    }
+    button.scan-barcode-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: white;
+      fill: none;
+    }
+    .modal-buttons {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .modal-buttons button {
+      padding: 10px 20px;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .modal-buttons button.save-btn {
+      background-color: #0056cc;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0, 86, 204, 0.8);
+    }
+    .modal-buttons button.save-btn:hover {
+      background-color: #003d99;
+      box-shadow: 0 4px 10px rgba(0, 61, 153, 0.9);
+    }
+    .modal-buttons button.cancel-btn {
+      background-color: #ccc;
+      color: #333;
+    }
+    .modal-buttons button.cancel-btn:hover {
+      background-color: #999;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Stok Data Barang</h1>
+  </header>
+  <section class="search-container">
+    <input type="search" id="searchInput" placeholder="Cari nama barang..." aria-label="Cari nama barang" />
+  </section>
+  <section>
+    <table aria-label="Tabel data barang">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="selectAllCheckbox" aria-label="Pilih Semua Data"></th>
+          <th>Id</th>
+          <th>Nama Barang</th>
+          <th>Brand</th>
+          <th>Harga</th>
+          <th>Stok</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="dataTableBody">
+        <tr data-id="101" data-nama="Speaker Bluetooth" data-brand="JBL" data-harga="350000" data-stok="20" data-barcode="1234567890">
+          <td><input type="checkbox" class="select-row" aria-label="Pilih Speaker Bluetooth"></td>
+          <td>101</td>
+          <td>Speaker Bluetooth</td>
+          <td>JBL</td>
+          <td>Rp 350.000</td>
+          <td>20</td>
+          <td class="actions">
+            <button class="action-btn edit-btn" title="Edit Barang" aria-label="Edit Speaker Bluetooth">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2-2a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.85-1.81z"/></svg>
+            </button>
+            <button class="action-btn delete-btn" title="Hapus Barang" aria-label="Hapus Speaker Bluetooth">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12M9 7v10a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V7m-7 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </td>
+        </tr>
+        <!-- More rows -->
+      </tbody>
+    </table>
+  </section>
+  <section class="bottom-buttons" aria-label="Tombol aksi">
+    <button class="primary-btn" id="btnTambahData" type="button">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 5v14M5 12h14"></path>
+      </svg>
+      Tambah Data
+    </button>
+    <button class="primary-btn" id="btnGenerateBarcode" type="button">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="3" y="4" width="18" height="16" rx="2" ry="2"></rect>
+        <path d="M7 4v16M10 4v16M14 4v16M17 4v16"></path>
+      </svg>
+      Generate Barcode
+    </button>
+  </section>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:3000;">
+    <div class="modal">
+      <h2 id="modalTitle">Tambah Data Barang</h2>
+      <form id="addDataForm" autocomplete="off">
+        <div class="form-group">
+          <label for="namaBarang">Nama Barang</label>
+          <input type="text" id="namaBarang" name="namaBarang" placeholder="Masukkan nama barang" required />
+        </div>
+        <div class="form-group">
+          <label for="brand">Brand</label>
+          <input type="text" id="brand" name="brand" placeholder="Masukkan brand" required />
+        </div>
+        <div class="form-group">
+          <label for="harga">Harga</label>
+          <input type="number" id="harga" name="harga" min="0" placeholder="Masukkan harga" required />
+        </div>
+        <div class="form-group">
+          <label for="stok">Stok</label>
+          <input type="number" id="stok" name="stok" min="0" placeholder="Masukkan stok" required />
+        </div>
+        <div class="form-group">
+          <label for="barcode">Nomor Barcode</label>
+          <input type="text" id="barcode" name="barcode" placeholder="Masukkan nomor barcode" required />
+          <button type="button" id="scanBarcodeBtn" class="scan-barcode-btn" aria-label="Scan Barcode">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <path d="M7 3v18M17 3v18M3 7h18M3 17h18"></path>
+            </svg>
+            Scan
+          </button>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" id="cancelBtn" class="cancel-btn">Batal</button>
+          <button type="submit" class="save-btn">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const modalOverlay = document.getElementById('modalOverlay');
+    const btnTambahData = document.getElementById('btnTambahData');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const addDataForm = document.getElementById('addDataForm');
+    const btnGenerateBarcode = document.getElementById('btnGenerateBarcode');
+
+    btnTambahData.addEventListener('click', () => {
+      modalOverlay.style.display = 'flex';
+      document.getElementById('namaBarang').focus();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      modalOverlay.style.display = 'none';
+      addDataForm.reset();
+    });
+    modalOverlay.addEventListener('click', e => {
+      if (e.target === modalOverlay) {
+        modalOverlay.style.display = 'none';
+        addDataForm.reset();
+      }
+    });
+
+    addDataForm.addEventListener('submit', e => {
+      e.preventDefault();
+      const namaBarang = addDataForm.namaBarang.value.trim();
+      const brand = addDataForm.brand.value.trim();
+      const harga = addDataForm.harga.value.trim();
+      const stok = addDataForm.stok.value.trim();
+      const barcode = addDataForm.barcode.value.trim();
+
+      if (!namaBarang || !brand || !harga || !stok || !barcode) {
+        alert('Semua field wajib diisi.');
+        return;
+      }
+
+      const tbody = document.getElementById('dataTableBody');
+      const newId = Date.now();
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="checkbox" class="select-row" aria-label="Pilih ${namaBarang}"></td>
+        <td>${newId}</td>
+        <td>${namaBarang}</td>
+        <td>${brand}</td>
+        <td>Rp ${Number(harga).toLocaleString()}</td>
+        <td>${stok}</td>
+        <td class="actions">
+          <button class="action-btn edit-btn" title="Edit Barang" aria-label="Edit ${namaBarang}">
+            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 0 0 0-1.77l-2-2a1.25 1.25 0 0 0-1.77 0l-1.83 1.83 3.75 3.75 1.85-1.81z"/></svg>
+          </button>
+          <button class="action-btn delete-btn" title="Hapus Barang" aria-label="Hapus ${namaBarang}">
+            <svg viewBox="0 0 24 24"><path d="M6 7h12M9 7v10a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V7m-7 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      modalOverlay.style.display = 'none';
+      addDataForm.reset();
+    });
+
+    document.getElementById('scanBarcodeBtn').addEventListener('click', () => {
+      alert('Fungsi scan barcode dengan kamera belum diimplementasikan');
+    });
+
+    btnGenerateBarcode.addEventListener('click', () => {
+      const selectedCheckboxes = [...document.querySelectorAll('.select-row:checked')];
+      if (selectedCheckboxes.length === 0) {
+        alert('Pilih minimal satu item untuk generate barcode.');
+        return;
+      }
+      const selectedItems = selectedCheckboxes.map(cb => {
+        const tr = cb.closest('tr');
+        return {
+          id: tr.cells[1].textContent,
+          namaBarang: tr.cells[2].textContent,
+          brand: tr.cells[3].textContent,
+          harga: tr.cells[4].textContent,
+          stok: tr.cells[5].textContent
+        };
+      });
+      alert(`Generate Barcode untuk:\n${selectedItems.map(r => `- ${r.namaBarang} (${r.brand})`).join('\n')}`);
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Pengaturan Profil - ABElektronik</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #e6f0ff;
+      color: #004a99;
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      font-weight: 600;
+      font-size: 1.5rem;
+      color: #0056cc;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 4px;
+      color: #003d99;
+    }
+
+    input[type="text"],
+    input[type="url"]{
+      padding: 10px 12px;
+      font-size: 1rem;
+      border: 2px solid #0056cc;
+      border-radius: 8px;
+      outline-offset: 2px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box;
+      color: #003d99;
+      background-color: #ffffff;
+      font-weight: 500;
+    }
+
+    input[type="text"]:focus,
+    input[type="url"]:focus {
+      border-color: #004a99;
+      box-shadow: 0 0 8px rgba(0, 86, 204, 0.7);
+      outline: none;
+    }
+
+    .profile-photo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .profile-photo {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 3px solid #0056cc;
+      object-fit: cover;
+      cursor: pointer;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .profile-photo:hover {
+      box-shadow: 0 0 8px rgba(0, 86, 204, 0.6);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button.save-btn {
+      background-color: #0056cc;
+      color: white;
+    }
+
+    button.save-btn:hover {
+      background-color: #004a99;
+    }
+
+    button.cancel-btn {
+      background-color: #cce0ff;
+      color: #003d99;
+    }
+
+    button.cancel-btn:hover {
+      background-color: #99bbff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h2>Pengaturan Profil</h2>
+  <form id="profileForm">
+    <div class="profile-photo-container">
+      <label for="profilePhotoInput" aria-label="Ganti Foto Profil">
+        <img src="https://i.pravatar.cc/96" alt="Foto Profil" id="profilePhoto" class="profile-photo"/>
+      </label>
+      <input type="file" id="profilePhotoInput" accept="image/*" aria-label="Upload Foto Profil" />
+    </div>
+
+    <label for="storeName">Toko</label>
+    <input type="text" id="storeName" name="storeName" placeholder="Nama toko" required />
+
+    <label for="storeAddress">Alamat</label>
+    <input type="text" id="storeAddress" name="storeAddress" placeholder="Alamat toko" required />
+
+    <label for="addressLink">Link Alamat</label>
+    <input type="url" id="addressLink" name="addressLink" placeholder="URL lokasi toko" />
+
+    <div class="buttons">
+      <button type="submit" class="save-btn">Simpan</button>
+      <button type="button" class="cancel-btn" id="cancelBtn">Batal</button>
+    </div>
+  </form>
+
+  <script>
+    const profilePhotoInput = document.getElementById('profilePhotoInput');
+    const profilePhoto = document.getElementById('profilePhoto');
+    const profileForm = document.getElementById('profileForm');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    // Load saved data from localStorage
+    function loadProfileData() {
+      const storeName = localStorage.getItem('storeName') || '';
+      const storeAddress = localStorage.getItem('storeAddress') || '';
+      const addressLink = localStorage.getItem('addressLink') || '';
+      const photoData = localStorage.getItem('profilePhoto');
+
+      if(storeName) profileForm.storeName.value = storeName;
+      if(storeAddress) profileForm.storeAddress.value = storeAddress;
+      if(addressLink) profileForm.addressLink.value = addressLink;
+      if(photoData) profilePhoto.src = photoData;
+    }
+
+    // Save form data to localStorage
+    profileForm.addEventListener('submit', e => {
+      e.preventDefault();
+
+      localStorage.setItem('storeName', profileForm.storeName.value.trim());
+      localStorage.setItem('storeAddress', profileForm.storeAddress.value.trim());
+      localStorage.setItem('addressLink', profileForm.addressLink.value.trim());
+
+      alert('Data profil berhasil disimpan!');
+    });
+
+    // Cancel form reloads saved data
+    cancelBtn.addEventListener('click', e => {
+      e.preventDefault();
+      loadProfileData();
+    });
+
+    // Update the profile photo preview when user selects a new image
+    profilePhotoInput.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if(file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          profilePhoto.src = evt.target.result;
+          // Save image data to localStorage for persistence (note: localStorage size limit)
+          localStorage.setItem('profilePhoto', evt.target.result);
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Initial load of saved profile data
+    loadProfileData();
+  </script>
+</body>
+</html>
+</content>
+</create_file>
