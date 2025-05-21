@@ -482,38 +482,17 @@ const avatarIcon = document.querySelector('.avatar-wrapper .avatar-icon');
 const defaultStoreLogo = "https://cdn-icons-png.flaticon.com/512/3135/3135768.png";
 
 // Manage profile photo changes
-profilePhotoInput.addEventListener('change', async e => {
+profilePhotoInput.addEventListener('change', e => {
   const file = e.target.files[0];
-  if (file && file.type.startsWith('image/')) {
+  if(file && file.type.startsWith('image/')) {
     const reader = new FileReader();
-    reader.onload = async function(event) {
+    reader.onload = function(event) {
       profilePhoto.src = event.target.result;
-
-      // Simpan foto ke Firebase Storage
-      const storageRef = storage.ref();
-      const profilePhotoRef = storageRef.child(`profile_photos/${file.name}`);
-      
-      try {
-        await profilePhotoRef.put(file);
-        const downloadURL = await profilePhotoRef.getDownloadURL();
-
-        // Simpan URL ke Firestore
-        const activeStoreId = localStorage.getItem('activeStoreId');
-        if (activeStoreId) {
-          await db.collection('stores').doc(activeStoreId).update({
-            profilePhoto: downloadURL // Simpan URL foto profil di Firestore
-          });
-        }
-
-        localStorage.setItem('profilePhoto', downloadURL); // Simpan di localStorage
-      } catch (error) {
-        console.error("Error uploading profile photo:", error);
-      }
+      localStorage.setItem('profilePhoto', event.target.result);
     };
     reader.readAsDataURL(file);
   }
 });
-
 
 // Add a new store to Firestore
 async function addStore(storeData) {
