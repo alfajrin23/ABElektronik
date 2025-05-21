@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Stok Data Barang - ABElektronik</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #e6f0ff;
+      color: #004a99;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px 16px 80px 16px;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    header {
+      margin-bottom: 24px;
+      border-bottom: 2px solid #0056cc;
+      padding-bottom: 8px;
+    }
+    header h1 {
+      font-weight: 700;
+      font-size: 1.8rem;
+      margin: 0;
+      letter-spacing: 1px;
+      color: #003d99;
+    }
+    .search-container {
+      margin-bottom: 16px;
+    }
+    input[type="search"] {
+      width: 100%;
+      padding: 10px 14px;
+      font-size: 1rem;
+      border: 2px solid #0056cc;
+      border-radius: 8px;
+      outline-offset: 2px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box;
+      color: #004a99;
+      background-color: #ffffff;
+      font-weight: 500;
+    }
+    input[type="search"]::placeholder {
+      color: #8cb0ff;
+      font-weight: 500;
+    }
+    input[type="search"]:focus {
+      border-color: #003d99;
+      box-shadow: 0 0 8px rgba(0, 86, 204, 0.7);
+      outline: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #f0f8ff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+    thead {
+      background-color: #0056cc;
+      color: white;
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #aaccee;
+      vertical-align: middle;
+      font-weight: 500;
+    }
+    tbody tr:hover {
+      background-color: #d0e3ff;
+    }
+    .scrollable-table {
+      max-height: 550px; /* Atur tinggi maksimum untuk scroll */
+      overflow-y: auto; /* Tambahkan scroll vertikal */
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      height: 40px;
+    }
+    button.action-btn {
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      line-height: 1;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      stroke-width: 2;
+      width: 32px;
+      height: 32px;
+    }
+    button.edit-btn {
+      background-color: #007bff;
+      color: white;
+    }
+    button.edit-btn:hover {
+      background-color: #0056b3;
+    }
+    button.delete-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+    button.delete-btn:hover {
+      background-color: #a71d2a;
+    }
+    button.action-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+    }
+    .bottom-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    button.primary-btn {
+      background-color: #0056cc;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 86, 204, 0.7);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    button.primary-btn:hover {
+      background-color: #004a99;
+      box-shadow: 0 4px 10px rgba(0, 74, 153, 0.85);
+      outline: none;
+    }
+    button.primary-btn svg {
+      stroke: white;
+      width: 20px;
+      height: 20px;
+    }
+    @media (max-width: 480px) {
+      body {
+        padding: 16px 12px 80px 12px;
+        max-width: 100%;
+      }
+      .bottom-buttons {
+        justify-content: center;
+      }
+      button.primary-btn {
+        flex: 1 1 45%;
+        justify-content: center;
+      }
+    }
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+    }
+    .modal {
+      background: white;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      padding: 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      position: relative;
+      font-weight: 500;
+      color: #004a99;
+      box-sizing: border-box;
+    }
+    .modal h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #003d99;
+      font-size: 1.5rem;
+      font-weight: 700;
+      border-bottom: 2px solid #0056cc;
+      padding-bottom: 6px;
+      letter-spacing: 0.03em;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 1rem;
+      border: 2px solid #0056cc;
+      border-radius: 8px;
+      outline-offset: 2px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      color: #004a99;
+      background-color: #fff;
+      font-weight: 500;
+      box-sizing: border-box;
+    }
+    input[type="text"]::placeholder, input[type="number"]::placeholder {
+      color: #8cb0ff;
+      font-weight: 500;
+    }
+    input[type="text"]:focus, input[type="number"]:focus {
+      border-color: #003d99;
+      box-shadow: 0 0 8px rgba(0, 86, 204, 0.7);
+      outline: none;
+    }
+    button.scan-barcode-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.3s ease;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    button.scan-barcode-btn:hover {
+      background-color: #0056b3;
+      outline: none;
+    }
+    button.scan-barcode-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: white;
+      fill: none;
+    }
+    .modal-buttons {
+      margin-top: 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+    .modal-buttons button {
+      padding: 10px 20px;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .modal-buttons button.save-btn {
+      background-color: #0056cc;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0, 86, 204, 0.8);
+    }
+    .modal-buttons button.save-btn:hover {
+      background-color: #003d99;
+      box-shadow: 0 4px 10px rgba(0, 61, 153, 0.9);
+    }
+    .modal-buttons button.cancel-btn {
+      background-color: #ccc;
+      color: #333;
+    }
+    .modal-buttons button.cancel-btn:hover {
+      background-color: #999;
+      color: white;
+    }
+    /* Scanner container for Quagga */
+    #scanner-container {
+      display: none;
+      position: relative;
+      margin-top: 10px;
+      border: 2px solid #0056cc;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 360px;
+      height: 300px;
+      background: black;
+      z-index: 4000;
+    }
+    #scanner-container #closeScannerBtn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      z-index: 10;
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 20px;
+      text-align: center;
+      padding: 0;
+    }
+    #interactive.viewport {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+  </style>
+  <!-- Load Quagga.js from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script> 
+  <!-- Firebase App (core SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <!-- Firestore SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Stok Data Barang</h1>
+  </header>
+  <section class="search-container">
+    <input type="search" id="searchInput" placeholder="Cari nama barang..." aria-label="Cari nama barang" />
+  </section>
+  <section>
+    <div class="scrollable-table">
+      <table aria-label="Tabel data barang">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="selectAllCheckbox" aria-label="Pilih Semua Data"></th>
+            <th>Id</th>
+            <th>Nama Barang</th>
+            <th>Brand</th>
+            <th>Harga</th>
+            <th>Stok</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="dataTableBody">
+          <!-- Data akan diisi oleh JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="bottom-buttons" aria-label="Tombol aksi">
+    <canvas id="barcodeCanvas" style="display:none;"></canvas>
+    <button class="primary-btn" id="btnTambahData" type="button" aria-label="Tambah Data Baru">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M12 5v14M5 12h14"></path>
+      </svg>
+      Tambah Data
+    </button>
+    <button class="primary-btn" id="btnGenerateBarcode" type="button" aria-label="Generate Barcode">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <rect x="3" y="4" width="18" height="16" rx="2" ry="2"></rect>
+        <path d="M7 4v16M10 4v16M14 4v16M17 4v16"></path>
+      </svg>
+      Generate Barcode
+    </button>
+  </section>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.4); justify-content:center; align-items:center; z-index:3000;">
+    <div class="modal" role="document">
+      <h2 id="modalTitle">Tambah Data Barang</h2>
+      <form id="addDataForm" autocomplete="off">
+        <div class="form-group">
+          <label for="namaBarang">Nama Barang</label>
+          <input type="text" id="namaBarang" name="namaBarang" placeholder="Masukkan nama barang" required />
+        </div>
+        <div class="form-group">
+          <label for="brand">Brand</label>
+          <input type="text" id="brand" name="brand" placeholder="Masukkan brand" required />
+        </div>
+        <div class="form-group">
+          <label for="harga">Harga</label>
+          <input type="text" id="harga" name="harga" placeholder="Masukkan harga" required />
+        </div>
+        <div class="form-group">
+          <label for="stok">Stok</label>
+          <input type="number" id="stok" name="stok" min="0" placeholder="Masukkan stok" required />
+        </div>
+        <div class="form-group">
+          <label for="barcode">Nomor Barcode</label>
+          <div class="input-row">
+            <input type="text" id="barcode" name="barcode" placeholder="Masukkan nomor barcode" required autocomplete="off" />
+            <button type="button" id="scanBarcodeBtn" class="scan-barcode-btn" aria-label="Scan Barcode">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <path d="M7 3v18M17 3v18M3 7h18M3 17h18"></path>
+              </svg>
+              Scan
+            </button>
+          </div>
+          <!-- Scanner container for Quagga -->
+          <div id="scanner-container" aria-label="Scanner Barcode">
+            <button id="closeScannerBtn" aria-label="Tutup Scanner">&times;</button>
+            <div id="interactive" class="viewport"></div>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" id="cancelBtn" class="cancel-btn">Batal</button>
+          <button type="submit" class="save-btn">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="firebase-config.js"></script>
+
+  <script>
+    const modalOverlay = document.getElementById('modalOverlay');
+    const btnTambahData = document.getElementById('btnTambahData');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const addDataForm = document.getElementById('addDataForm');
+    const btnGenerateBarcode = document.getElementById('btnGenerateBarcode');
+    const dataTableBody = document.getElementById('dataTableBody');
+    const searchInput = document.getElementById('searchInput');
+
+    let editMode = false;
+    let editProductId = null;
+    let products = [];
+
+    // Scanner elements for Quagga
+    const scanBtn = document.getElementById('scanBarcodeBtn');
+    const scannerContainer = document.getElementById('scanner-container');
+    const closeScannerBtn = document.getElementById('closeScannerBtn');
+    const barcodeInput = document.getElementById('barcode');
+
+    let isScanning = false;
+
+    // Fetch all products from backend
+    async function fetchProducts() {
+      const activeStoreId = localStorage.getItem('activeStoreId');
+      try {
+        const snapshot = await window.firebaseUtils.productsCollection.where('storeId', '==', activeStoreId).get();
+        products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderTable(products);
+      } catch (error) {
+        alert('Gagal memuat data produk: ' + error.message);
+      }
+    }
+
+    // Render products ke tabel
+    async function fetchProducts() {
+      const activeStoreId = localStorage.getItem('activeStoreId');
+      try {
+        const snapshot = await window.firebaseUtils.productsCollection.where('storeId', '==', activeStoreId).get();
+        products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderTable(products);
+      } catch (error) {
+        alert('Gagal memuat data produk: ' + error.message);
+      }
+    }
+
+    // Render products ke tabel
+    function renderTable(data) {
+      dataTableBody.innerHTML = '';
+      data.forEach((product, index) => {
+        const tr = document.createElement('tr');
+        tr.dataset.id = product.id;
+        tr.dataset.nama = product.namaBarang;
+        tr.dataset.brand = product.brand;
+        tr.dataset.harga = product.harga;
+        tr.dataset.stok = product.stok;
+        tr.dataset.barcode = product.barcode;
+
+        tr.innerHTML = `
+          <td><input type="checkbox" class="select-row" aria-label="Pilih ${product.namaBarang}"></td>
+          <td>${index + 1}</td>
+          <td>${product.namaBarang}</td>
+          <td>${product.brand}</td>
+          <td>Rp ${Number(product.harga).toLocaleString()}</td>
+          <td>${product.stok}</td>
+          <td class="actions">
+            <button class="action-btn edit-btn" title="Edit Barang" aria-label="Edit ${product.namaBarang}">✏️</button>
+            <button class="action-btn delete-btn" title="Hapus Barang" aria-label="Hapus ${product.namaBarang}">🗑️</button>
+          </td>
+        `;
+        dataTableBody.appendChild(tr);
+      });
+    }
+
+    // Open modal form for adding or editing
+    btnTambahData.addEventListener('click', () => {
+      editMode = false;
+      editProductId = null;
+      addDataForm.reset();
+      document.getElementById('modalTitle').textContent = 'Tambah Data Barang';
+      modalOverlay.style.display = 'flex';
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      modalOverlay.style.display = 'none';
+      addDataForm.reset();
+    });
+  
+    modalOverlay.addEventListener('click', e => {
+      if (e.target === modalOverlay) {
+        modalOverlay.style.display = 'none';
+        addDataForm.reset();
+        stopQuaggaScanner();
+      }
+    });
+
+    const hargaInput = document.getElementById('harga');
+
+    function formatRupiah(angka) {
+      let numberString = angka.replace(/[^,\d]/g, '').toString();
+      let split = numberString.split(',');
+      let sisa = split[0].length % 3;
+      let rupiah = split[0].substr(0, sisa);
+      let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+      if (ribuan) {
+        let separator = sisa ? '.' : '';
+        rupiah += separator + ribuan.join('.');
+      }
+
+      rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+      return rupiah;
+    }
+
+    hargaInput.addEventListener('input', e => {
+      let cursorPosition = hargaInput.selectionStart;
+      let originalLength = hargaInput.value.length;
+
+      hargaInput.value = formatRupiah(hargaInput.value);
+
+      let newLength = hargaInput.value.length;
+      cursorPosition = cursorPosition + (newLength - originalLength);
+      hargaInput.setSelectionRange(cursorPosition, cursorPosition);
+    });
+
+    // Submit form add/edit
+    // Submit form add/edit
+    addDataForm.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      const namaBarang = addDataForm.namaBarang.value.trim();
+      const brand = addDataForm.brand.value.trim();
+      const hargaRaw = addDataForm.harga.value.trim().replace(/\./g, '');
+      const harga = Number(hargaRaw);
+      const stok = Number(addDataForm.stok.value.trim());
+      const barcode = addDataForm.barcode.value.trim();
+
+      if (!namaBarang || !brand || isNaN(harga) || isNaN(stok) || !barcode) {
+        alert('Semua field wajib diisi dengan benar.');
+        return;
+      }
+
+      const activeStoreId = localStorage.getItem('activeStoreId');
+      const productData = { namaBarang, brand, harga, stok, barcode, storeId: activeStoreId };
+
+      try {
+        // Check for duplicate barcode in the same store
+        const existingProducts = await window.firebaseUtils.productsCollection
+          .where('storeId', '==', activeStoreId)
+          .where('barcode', '==', barcode)
+          .get();
+
+        if (!editMode && existingProducts.size > 0) {
+          alert('Barcode sudah ada di store ini. Silakan gunakan barcode yang berbeda.');
+          return;
+        }
+
+        if (editMode && editProductId) {
+          await window.firebaseUtils.updateProduct(editProductId, productData);
+          alert('Produk berhasil diperbarui');
+        } else {
+          await window.firebaseUtils.addProduct(productData);
+          alert('Produk berhasil ditambahkan');
+        }
+        modalOverlay.style.display = 'none';
+        addDataForm.reset();
+        fetchProducts();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+
+
+    // Load data saat halaman dibuka
+    fetchProducts();
+
+    // Handle edit and delete buttons in table using event delegation
+    dataTableBody.addEventListener('click', async e => {
+      const target = e.target.closest('button');
+      if (!target) return;
+
+      const tr = target.closest('tr');
+      const id = tr.dataset.id;
+
+      if (target.classList.contains('edit-btn')) {
+        const product = products.find(p => p.id === id);
+        if (!product) {
+          alert('Produk tidak ditemukan');
+          return;
+        }
+        editMode = true;
+        editProductId = id;
+        document.getElementById('modalTitle').textContent = 'Edit Data Barang';
+        addDataForm.namaBarang.value = product.namaBarang;
+        addDataForm.brand.value = product.brand;
+        addDataForm.harga.value = Number(product.harga).toLocaleString('id-ID');
+        addDataForm.stok.value = product.stok;
+        addDataForm.barcode.value = product.barcode;
+        modalOverlay.style.display = 'flex';
+        document.getElementById('namaBarang').focus();
+        stopQuaggaScanner();
+      } else if (target.classList.contains('delete-btn')) {
+        if (confirm(`Yakin ingin menghapus produk "${tr.dataset.nama}"?`)) {
+          try {
+            await window.firebaseUtils.deleteProduct(id);
+            alert('Produk berhasil dihapus');
+            fetchProducts();
+          } catch (error) {
+            alert(error.message);
+          }
+        }
+      }
+    });
+
+    // Search filter
+    searchInput.addEventListener('input', () => {
+      const keyword = searchInput.value.toLowerCase();
+      const filtered = products.filter(p => p.namaBarang.toLowerCase().includes(keyword));
+      renderTable(filtered);
+    });
+
+    // Generate barcode button alert (sesuaikan kebutuhan)
+    btnGenerateBarcode.addEventListener('click', () => {
+      const selectedCheckboxes = [...document.querySelectorAll('.select-row:checked')];
+      if (selectedCheckboxes.length === 0) {
+        alert('Pilih minimal satu item untuk generate barcode.');
+        return;
+      }
+
+      const canvas = document.getElementById('barcodeCanvas');
+      const ctx = canvas.getContext('2d');
+
+      selectedCheckboxes.forEach((cb, index) => {
+        const tr = cb.closest('tr');
+        const barcodeValue = tr.dataset.barcode;
+        const namaBarang = tr.dataset.nama;
+        const brand = tr.dataset.brand;
+        const hargaNumber = Number(tr.dataset.harga);
+        const hargaFormatted = 'Rp ' + hargaNumber.toLocaleString('id-ID');
+
+        const width = 350;
+        const height = 140;
+        canvas.width = width;
+        canvas.height = height;
+
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.fillStyle = '#004a99';
+        ctx.textAlign = 'center';
+
+        ctx.font = 'bold 16px Poppins, sans-serif';
+        const brandNama = `${brand} - ${namaBarang}`;
+        ctx.fillText(brandNama, width / 2, 30);
+
+        ctx.font = 'bold 14px Poppins, sans-serif';
+        ctx.fillText(hargaFormatted, width / 2, 55);
+
+        const barcodeCanvas = document.createElement('canvas');
+        JsBarcode(barcodeCanvas, barcodeValue, {
+          format: 'CODE128',
+          displayValue: true,
+          fontSize: 14,
+          height: 50,
+          width: 2,
+          margin: 0,
+          textMargin: 5,
+          textPosition: 'bottom',
+          background: 'transparent'
+        });
+
+        const barcodeHeight = 70;
+        ctx.drawImage(barcodeCanvas, (width - barcodeCanvas.width) / 2, height - barcodeHeight);
+
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        const safeBrand = brand.replace(/\s+/g, '_');
+        const safeName = namaBarang.replace(/\s+/g, '_');
+        link.download = `barcode_${safeBrand}_${safeName}_${barcodeValue}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    });
+
+    // Quagga.js Scanner functions
+    function startQuaggaScanner() {
+      if (isScanning) return;
+
+      scannerContainer.style.display = 'block';
+      barcodeInput.value = ''; // kosongkan dulu
+
+      Quagga.init({
+        inputStream: {
+          type: "LiveStream",
+          constraints: {
+            facingMode: "environment"
+          },
+          target: document.querySelector('#interactive')
+        },
+        decoder: {
+          readers: [
+            "code_128_reader",
+            "ean_reader",
+            "ean_8_reader",
+            "code_39_reader",
+            "code_39_vin_reader",
+            "codabar_reader",
+            "upc_reader",
+            "upc_e_reader",
+            "i2of5_reader",
+            "2of5_reader",
+            "code_93_reader"
+          ]
+        },
+        locate: true
+      }, function(err) {
+        if (err) {
+          console.error(err);
+          alert('Gagal menginisialisasi scanner: ' + err);
+          stopQuaggaScanner();
+          return;
+        }
+        Quagga.start();
+        isScanning = true;
+      });
+
+      Quagga.onDetected(onBarcodeDetected);
+    }
+
+    function stopQuaggaScanner() {
+      if (!isScanning) return;
+
+      Quagga.offDetected(onBarcodeDetected);
+      Quagga.stop();
+      isScanning = false;
+      scannerContainer.style.display = 'none';
+    }
+
+    function onBarcodeDetected(result) {
+      if (result && result.codeResult && result.codeResult.code) {
+        const code = result.codeResult.code;
+        barcodeInput.value = code;
+        stopQuaggaScanner();
+      }
+    }
+
+    scanBtn.addEventListener('click', () => {
+      if (!isScanning) {
+        startQuaggaScanner();
+      }
+    });
+
+    closeScannerBtn.addEventListener('click', () => {
+      if (isScanning) {
+        stopQuaggaScanner();
+      }
+    });
+
+    // Pastikan scanner berhenti jika modal ditutup
+    modalOverlay.addEventListener('click', e => {
+      if (e.target === modalOverlay) {
+        stopQuaggaScanner();
+      }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      stopQuaggaScanner();
+    });
+
+    // Load data saat halaman dibuka
+    fetchProducts();
+  </script>
+</body>
+</html>
