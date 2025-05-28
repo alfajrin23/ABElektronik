@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Laporan Stok Barang</title>
+    <style>
+        /* Reset some default */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            transition: background 0.5s ease;
+        }
+        .container {
+            max-width: 390px;
+            width: 100%;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            padding: 30px 25px 40px 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            max-height: 600px;
+            transition: transform 0.5s ease;
+            overflow-y: auto; /* Ensure content scrolls if too tall */
+        }
+        h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            color: #222;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 0.06em;
+            position: relative;
+            font-family: 'Segoe UI Black', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        h1::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -8px;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #16a34a, #22c55e);
+            border-radius: 2px;
+            transform: translateX(-50%);
+            box-shadow: 0 0 8px #16a34aaa, 0 0 8px #22c55eaa;
+        }
+        .filter-section {
+            width: 100%;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+        label {
+            font-size: 0.9rem;
+            color: #444;
+            font-weight: 600;
+            margin-bottom: 6px;
+            user-select: none;
+        }
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            transition: border-color 0.3s ease;
+            outline: none;
+            flex-grow: 1;
+        }
+        input[type="text"]:focus {
+            border-color: #22c55e;
+            box-shadow: 0 0 5px rgba(34,197,94,0.7);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.95rem;
+            table-layout: fixed; /* ensure table fits container */
+            word-break: break-word;
+        }
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            word-break: break-word;
+        }
+        th {
+            background-color: #f1f1f1;
+            color: #333;
+            font-weight: 700;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+            /* Atur lebar kolom di sini */
+    th:nth-child(1), td:nth-child(1) {
+        width: 30px; /* Lebar untuk kolom Id */
+    }
+    th:nth-child(2), td:nth-child(2) {
+        width: 60px; /* Lebar untuk kolom Nama Barang */
+    }
+    th:nth-child(3), td:nth-child(3) {
+        width: 60px; /* Lebar untuk kolom Brand */
+    }
+    th:nth-child(4), td:nth-child(4) {
+        width: 50px; /* Lebar untuk kolom Stok */
+    }
+    th:nth-child(5), td:nth-child(5) {
+        width: 70px; /* Lebar untuk kolom Harga */
+    }
+        /* Responsive */
+        @media (max-width: 480px) {
+            .filter-section {
+                width: 100%;
+            }
+        }
+        /* Smooth fade in animation for table rows */
+        tbody tr {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+        tbody tr.hidden {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            border: none;
+            overflow: hidden;
+        }
+        /* Icon styling (if using icons) */
+        .icon-search {
+            width: 20px;
+            height: 20px;
+            fill: #22c55e;
+            flex-shrink: 0;
+        }
+        button.btn-pdf {
+            background-color: #10b981;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            margin-top: 10px;
+            align-self: flex-start;
+        }
+        button.btn-pdf:hover {
+            background-color: #047857;
+            transform: scale(1.05);
+        }
+        button.btn-pdf:active {
+            transform: scale(0.95);
+        }
+        button.btn-pdf svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        button.btn-pdf:hover svg {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+    <main class="container" role="main" aria-label="Laporan Stok Barang">
+        <h1>Laporan Stok Barang</h1>
+        <section class="filter-section" aria-label="Filter berdasarkan nama barang">
+            <label for="filter-name">Filter Nama Barang</label>
+            <div class="input-wrapper">
+                <input type="text" id="filter-name" aria-label="Filter nama barang" placeholder="Ketik nama barang..." autocomplete="off" />
+                <svg class="icon-search" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                    <path d="M11 19a8 8 0 1 1 5.293-2.707l5.707 5.707-1.414 1.414-5.707-5.707A7.963 7.963 0 0 1 11 19zM11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/>
+                </svg>
+            </div>
+        </section>
+        <button class="btn-pdf" type="button" id="pdf-btn" aria-label="Simpan PDF">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M9 14h6M9 18h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Simpan PDF
+        </button>
+        <section class="table-section" aria-label="Data tabel laporan stok barang" style="width: 100%;">
+            <table aria-describedby="table-desc">
+                <caption id="table-desc" style="caption-side: bottom; text-align:left; padding-top:8px; font-size: 0.85rem; color:#666;">Tabel data stok barang dengan nama, brand, stok, dan harga.</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">Nama Barang</th>
+                        <th scope="col">Brand</th>
+                        <th scope="col">Stok</th>
+                        <th scope="col">Harga</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Data akan dimuat di sini -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <!-- Firebase SDK dan config -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        const activeStoreId = localStorage.getItem('activeStoreId');
+
+        const filterInput = document.getElementById('filter-name');
+        const tableBody = document.getElementById('table-body');
+        let allData = []; // Menyimpan data stok barang
+
+        // Fungsi load data stok barang dari Firestore
+        async function loadStokBarang() {
+            if (!activeStoreId) {
+                alert('Store aktif tidak ditemukan. Silakan pilih toko terlebih dahulu.');
+                return;
+            }
+            try {
+                // Panggil fetchData dengan filter storeId
+                const data = await window.firebaseUtils.fetchData(activeStoreId);
+                allData = data;
+                renderTable(allData);
+                filterRows(); // Apply filter jika ada teks
+            } catch (error) {
+                alert('Gagal memuat data: ' + error.message);
+            }
+        }
+
+        // Render data ke tabel
+        function renderTable(data) {
+            tableBody.innerHTML = '';
+            if(data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Tidak ada data</td></tr>';
+                return;
+            }
+            data.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.namaBarang}</td>
+                    <td>${item.brand || '-'}</td>
+                    <td>${item.stok}</td>
+                    <td>Rp ${Number(item.harga).toLocaleString('id-ID')}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Filter baris berdasarkan nama barang
+        function filterRows() {
+            const filterText = filterInput.value.trim().toLowerCase();
+            if (!filterText) {
+                renderTable(allData);
+                return;
+            }
+            const filteredData = allData.filter(item => 
+                item.namaBarang.toLowerCase().startsWith(filterText)
+            );
+            renderTable(filteredData);
+        }
+
+        filterInput.addEventListener('input', filterRows);
+
+
+        // PDF Save Functionality
+        document.getElementById('pdf-btn').addEventListener('click', () => {
+            const style = `
+                <style>
+                    table {width:100%; border-collapse: collapse;}
+                    th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+                    th {background-color:#f1f1f1;}
+                    h1 {text-align:center; font-family: Arial,sans-serif;}
+                    body {font-family: Arial,sans-serif; margin:30px;}
+                </style>
+            `;
+            let html = '<html><head><title>Laporan Stok Barang PDF</title>' + style + '</head><body>';
+            html += '<h1>Laporan Stok Barang</h1>';
+            html += '<table><thead><tr><th>Id</th><th>Nama Barang</th><th>Brand</th><th>Stok</th><th>Harga</th></tr></thead><tbody>';
+            
+            let pdfIndex = 1;
+            Array.from(tableBody.rows).forEach(row => {
+                if (!row.classList.contains('hidden')) {
+                    let trHtml = row.innerHTML;
+                    trHtml = trHtml.replace(/<td>.*?<\/td>/, `<td>${pdfIndex++}</td>`); // Update ID
+                    html += `<tr>${trHtml}</tr>`;
+                }
+            });
+            
+            html += '</tbody></table></body></html>';
+            
+            const newWindow = window.open();
+            newWindow.document.write(html);
+            newWindow.document.close();
+            newWindow.focus();
+            
+            // Tunggu sebentar lalu jalankan print
+            setTimeout(() => {
+                newWindow.print();
+                newWindow.close(); // Tutup jendela setelah print
+            }, 500);
+        });
+
+
+        // Load data saat halaman siap
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStokBarang();
+        });
+    </script>
+</body>
+</html>

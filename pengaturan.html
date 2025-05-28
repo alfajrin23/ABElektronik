@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Pengaturan - ABElektronik</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    :root {
+      --color-primary: #0056cc;
+      --color-primary-dark: #003d99;
+      --color-text: #222;
+      --bg-light: #f9f9f9;
+      --bg-white: #fff;
+      --bg-dark: #121212;
+      --text-light: #eee;
+      --shadow-light: rgba(0, 0, 0, 0.1);
+      --shadow-dark: rgba(0, 0, 0, 0.7);
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--color-text);
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      box-sizing: border-box;
+      min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.dark {
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+    }
+    header {
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--color-primary);
+      padding-bottom: 8px;
+    }
+    header h1 {
+      font-weight: 700;
+      font-size: 1.7rem;
+      margin: 0;
+      color: var(--color-primary);
+      user-select: none;
+      transition: color 0.3s ease;
+    }
+    body.dark header h1 {
+      color: #7ea6ff;
+    }
+    ul.settings-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px var(--shadow-light);
+      background: var(--bg-white);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    body.dark ul.settings-list {
+      background: #1e1e1e;
+      box-shadow: 0 2px 8px var(--shadow-dark);
+    }
+    ul.settings-list li {
+      padding: 16px 20px;
+      font-weight: 600;
+      font-size: 1rem;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: background-color 0.2s ease;
+    }
+    ul.settings-list li:last-child {
+      border-bottom: none;
+    }
+    body.dark ul.settings-list li {
+      border-bottom: 1px solid #444;
+    }
+    ul.settings-list li:hover {
+      background-color: #0077ff33;
+    }
+    body.dark ul.settings-list li:hover {
+      background-color: #3a68d833;
+    }
+    ul.settings-list li span.label-text {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    /* Icons */
+    svg.setting-icon {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      flex-shrink: 0;
+    }
+    /* Switch style */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      border-radius: 24px;
+      transition: background-color 0.3s;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    input:checked + .slider {
+      background-color: var(--color-primary);
+    }
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+    /* About modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+    }
+    .modal {
+      background: var(--bg-white);
+      border-radius: 10px;
+      max-width: 320px;
+      padding: 20px 24px;
+      box-shadow: 0 4px 15px var(--shadow-light);
+      color: var(--color-text);
+      user-select: none;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.dark .modal {
+      background: #222;
+      color: var(--text-light);
+      box-shadow: 0 4px 15px var(--shadow-dark);
+    }
+    .modal h2 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-weight: 700;
+      font-size: 1.4rem;
+      text-align: center;
+    }
+    .modal p {
+      font-size: 1rem;
+      line-height: 1.4;
+      margin-bottom: 20px;
+    }
+    .modal button {
+      display: block;
+      margin: 0 auto;
+      padding: 10px 18px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--color-primary);
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+    .modal button:hover {
+      background-color: #003d99;
+      outline: none;
+    }
+    /* Responsive */
+    @media (max-width: 480px) {
+      body {
+        padding: 24px 12px;
+      }
+      ul.settings-list li {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Pengaturan</h1>
+  </header>
+<ul class="settings-list" role="list">
+  <li id="aboutBtn" tabindex="0" role="button" aria-label="Tentang">
+    <span class="label-text">
+      <svg class="setting-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 16v-4M12 8h.01"></path>
+      </svg>
+      Tentang
+    </span>
+  </li>
+  <li id="keluarBtn" tabindex="0" role="button" aria-label="Keluar" style="color: #dc3545;">
+    <span class="label-text">
+      <svg class="setting-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M16 17l5-5-5-5M21 12H9M13 7v-2a2 2 0 012-2h3a2 2 0 012 2v14a2 2 0 01-2 2h-3a2 2 0 01-2-2v-2"></path>
+      </svg>
+      Keluar
+    </span>
+  </li>
+</ul>
+
+
+  <!-- About Modal -->
+  <div class="modal-overlay" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle" tabindex="-1" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);justify-content:center;align-items:center;z-index:3000;">
+    <div class="modal" style="background: var(--bg-white); border-radius: 10px; max-width: 320px; padding: 20px 24px; box-shadow: 0 4px 15px var(--shadow-light); color: var(--color-text); user-select: none; transition: background-color 0.3s ease, color 0.3s ease;">
+      <h2 id="aboutTitle" style="margin-top: 0; margin-bottom: 12px; font-weight: 700; font-size: 1.4rem; text-align: center;">Tentang ABElektronik</h2>
+      <p style="font-size: 1rem; line-height: 1.4; margin-bottom: 20px;">
+        ABElektronik adalah aplikasi manajemen stok barang elektronik yang dirancang dengan tampilan minimalis dan mudah digunakan.
+        Versi 1.0.0 &copy; by 
+        <a href="https://alfajrin23.github.io/personal_portofolio/" target="_blank" rel="noopener noreferrer" style="color: var(--color-primary); text-decoration: none; font-weight: 600;">
+          Al Fajrin A Alamsyah
+        </a> 2025
+      </p>
+      <button id="closeAboutBtn" aria-label="Tutup tentang" style="display: block; margin: 0 auto; padding: 10px 18px; font-weight: 600; border: none; border-radius: 8px; background-color: var(--color-primary); color: white; cursor: pointer; font-size: 1rem; transition: background-color 0.3s ease;">Tutup</button>
+    </div>
+  </div>
+
+  <script>
+    // Dark mode toggle logic with localStorage persistence
+
+    // Load stored theme preference on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        
+    })
+
+    // About modal functionality
+    const aboutBtn = document.getElementById('aboutBtn');
+    const aboutModal = document.getElementById('aboutModal');
+    const closeAboutBtn = document.getElementById('closeAboutBtn');
+
+    function openAbout() {
+      aboutModal.style.display = 'flex';
+      closeAboutBtn.focus();
+    }
+    function closeAbout() {
+      aboutModal.style.display = 'none';
+      aboutBtn.focus();
+    }
+    aboutBtn.addEventListener('click', openAbout);
+    aboutBtn.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openAbout();
+      }
+    });
+    closeAboutBtn.addEventListener('click', closeAbout);
+    aboutModal.addEventListener('click', e => {
+      if(e.target === aboutModal) closeAbout();
+    });
+
+    // Laporan Toko button placeholder
+    const laporanTokoBtn = document.getElementById('laporanTokoBtn');
+    laporanTokoBtn.addEventListener('click', () => {
+      alert('Fungsi Laporan Toko - membuat database baru berdasarkan nama toko (belum diimplementasikan)');
+    });
+    laporanTokoBtn.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        laporanTokoBtn.click();
+      }
+    });
+
+    // Bahasa switch with placeholder alert and persistent state
+    const languageBtn = document.getElementById('languageBtn');
+    let isEnglish = localStorage.getItem('language') === 'en';
+
+    function updateLanguageLabel() {
+      languageBtn.textContent = isEnglish ? 'Language (Indonesia)' : 'Bahasa (English)';
+    }
+    updateLanguageLabel();
+
+    languageBtn.addEventListener('click', () => {
+      isEnglish = !isEnglish;
+      localStorage.setItem('language', isEnglish ? 'en' : 'id');
+      updateLanguageLabel();
+      alert(isEnglish ? 'Aplikasi beralih ke Bahasa Inggris (belum diimplementasikan)' : 'Aplikasi beralih ke Bahasa Indonesia (belum diimplementasikan)');
+    });
+    languageBtn.addEventListener('keydown', e => {
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        languageBtn.click();
+      }
+    });
+
+// Keluar button with confirm
+const keluarBtn = document.getElementById('keluarBtn');
+keluarBtn.addEventListener('click', () => {
+  if (confirm('Apakah Anda yakin ingin keluar dari aplikasi?')) {
+    alert('Keluar aplikasi (simulasi)');
+    window.close(); // Menutup halaman
+  }
+});
+
+keluarBtn.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    keluarBtn.click();
+  }
+});
+
+  </script>
+</body>
+</html>

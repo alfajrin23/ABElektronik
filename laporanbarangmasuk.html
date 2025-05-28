@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>Laporan Barang Masuk</title>
+    <style>
+        /* Reset some default */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+            transition: background 0.5s ease;
+        }
+        .container {
+            max-width:390px;
+            width: 100%;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            padding: 30px 25px 40px 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            max-height: 100%;
+            transition: transform 0.5s ease;
+        }
+        h1 {
+            font-weight: 700;
+            font-size: 2rem;
+            color: #222;
+            margin-bottom: 30px;
+            text-align: center;
+            letter-spacing: 0.06em;
+            position: relative;
+            font-family: 'Segoe UI Black', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        h1::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -8px;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            border-radius: 2px;
+            transform: translateX(-50%);
+            box-shadow: 0 0 8px #3b82f6aa, 0 0 8px #10b981aa;
+        }
+        .filter-section {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 0.9rem;
+            color: #444;
+            margin-bottom: 6px;
+            display: block;
+            font-weight: 600;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        input[type="date"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            width: 140px;
+            transition: border-color 0.3s ease;
+            font-size: 1rem;
+        }
+        input[type="date"]:focus {
+            border-color: #3b82f6;
+            outline: none;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-start;
+        }
+        button {
+            background-color: #3b82f6; /* Blue */
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        button:hover {
+            background-color: #2563eb;
+            transform: scale(1.05);
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        #reset-btn {
+            background-color: #ef4444; /* Red */
+            padding: 10px;
+            width: 44px;
+            justify-content: center;
+        }
+        #reset-btn:hover {
+            background-color: #b91c1c;
+        }
+        #pdf-btn {
+            background-color: #10b981; /* Green */
+        }
+        #pdf-btn:hover {
+            background-color: #047857;
+        }
+        /* Filter button with icon only */
+        #filter-btn {
+            background-color: #6b7280; /* Grey */
+            border-radius: 8px;
+            padding: 10px;
+            width: 44px;
+            height: 44px;
+            justify-content: center;
+        }
+        #filter-btn:hover {
+            background-color: #4b5563;
+        }
+        button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        button:hover svg {
+            transform: scale(1.2);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.95rem;
+        }
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            word-break: break-word;
+        }
+        th {
+            background-color: #f1f1f1;
+            color: #333;
+            font-weight: 700;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        .table-wrapper {
+            max-height: 380px; /* 6 baris x 48px */
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .table-wrapper thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f1f1f1;
+            z-index: 10;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .filter-section {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 10px;
+            }
+            .btn-group {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="container" role="main" aria-label="Laporan Barang Masuk">
+        <h1>Laporan Barang Masuk <span style="color:#10b981; font-weight: 700;">Terbaru</span></h1>
+        <section class="filter-section" aria-label="Filter data laporan">
+    <div class="input-group">
+        <label for="start-date">Tanggal Awal</label>
+        <input type="date" id="start-date" aria-label="Tanggal Awal" />
+    </div>
+    <div class="input-group">
+        <label for="end-date">Tanggal Akhir</label>
+        <input type="date" id="end-date" aria-label="Tanggal Akhir" />
+    </div>
+    <button id="filter-btn" type="button" aria-label="Filter Data">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M3 5h18M6 12h12M10 19h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+</section>
+<div class="btn-group">
+    <button id="reset-btn" type="button" aria-label="Reset Filter">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+    <button id="pdf-btn" type="button" aria-label="Simpan PDF">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M9 14h6M9 18h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Simpan PDF
+    </button>
+</div>
+
+            </div>
+        </section>
+        <section class="table-section" aria-label="Data tabel laporan barang masuk">
+        <div class="table-wrapper">
+            <table aria-describedby="table-desc">
+            <caption id="table-desc" style="caption-side: bottom; text-align:left; padding-top:8px; font-size: 0.85rem; color:#666;">Tabel data nama barang, tanggal, dan jumlah barang masuk.</caption>
+            <thead>
+                <tr>
+                <th scope="col">Nama Barang</th>
+                <th scope="col">Tanggal</th>
+                <th scope="col">Jumlah</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Data akan dimuat di sini -->
+            </tbody>
+            </table>
+        </div>
+        </section>
+
+    </main>
+
+    <!-- Firebase SDK dan config -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+
+    <script>
+        const activeStoreId = localStorage.getItem('activeStoreId');
+
+        const startDateInput = document.getElementById('start-date');
+        const endDateInput = document.getElementById('end-date');
+        const filterBtn = document.getElementById('filter-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const pdfBtn = document.getElementById('pdf-btn');
+        const tableBody = document.getElementById('table-body');
+
+        // Set default tanggal hari ini
+        const today = new Date().toISOString().split('T')[0];
+        startDateInput.value = today;
+        endDateInput.value = today;
+
+        let allData = []; // Menyimpan semua data barang masuk
+
+        // Fungsi load data barang masuk dari Firestore
+        async function loadBarangMasuk() {
+            try {
+                const activeStoreId = localStorage.getItem('activeStoreId');
+                if (!activeStoreId) {
+                    alert('Store aktif tidak ditemukan. Silakan pilih toko terlebih dahulu.');
+                    return;
+                }
+                // Memanggil fetchHistory dengan filter storeId
+                const historyData = await window.firebaseUtils.fetchHistory(activeStoreId);
+                // Filter hanya kategori 'keluar'
+                allData = historyData.filter(item => item.kategori === 'masuk');
+                renderTable(allData);
+            } catch (error) {
+                alert('Gagal memuat data: ' + error.message);
+            }
+        }
+
+        function formatTimestampToDate(timestamp) {
+            if (!timestamp) return '';
+            // Jika timestamp adalah objek dengan .seconds dan .nanoseconds
+            if (timestamp.seconds !== undefined) {
+                const date = new Date(timestamp.seconds * 1000);
+                // Format tanggal ke yyyy-mm-dd
+                return date.toISOString().split('T')[0];
+            }
+            // Jika sudah string, kembalikan apa adanya
+            return timestamp;
+        }
+
+
+        // Render data ke tabel
+        function renderTable(data) {
+            tableBody.innerHTML = '';
+            if(data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Tidak ada data</td></tr>';
+                return;
+            }
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.namaBarang}</td>
+                    <td>${formatTimestampToDate(item.tanggal)}</td>
+                    <td>${item.jumlah}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Filter data berdasarkan tanggal
+        function filterTable() {
+            const startDateValue = startDateInput.value;
+            const endDateValue = endDateInput.value;
+
+            const filtered = allData.filter(item => {
+                if (!item.tanggal) return false;
+                if (startDateValue && endDateValue) {
+                    return item.tanggal >= startDateValue && item.tanggal <= endDateValue;
+                } else if (startDateValue) {
+                    return item.tanggal >= startDateValue;
+                } else if (endDateValue) {
+                    return item.tanggal <= endDateValue;
+                }
+                return true;
+            });
+            renderTable(filtered);
+        }
+
+        filterBtn.addEventListener('click', filterTable);
+
+        resetBtn.addEventListener('click', () => {
+            startDateInput.value = today;
+            endDateInput.value = today;
+            renderTable(allData);
+        });
+
+        pdfBtn.addEventListener('click', () => {
+            const style = `
+                <style>
+                    table {width:100%; border-collapse: collapse;}
+                    th, td {border:1px solid #ddd; padding:8px; text-align:left;}
+                    th {background-color:#f1f1f1;}
+                    h1 {text-align:center; font-family: Arial,sans-serif;}
+                    body {font-family: Arial,sans-serif; margin:30px;}
+                </style>
+            `;
+            let html = '<html><head><title>Laporan Barang Masuk PDF</title>' + style + '</head><body>';
+            html += '<h1>Laporan Barang Masuk</h1>';
+            html += '<table><thead><tr><th>Nama Barang</th><th>Tanggal</th><th>Jumlah</th></tr></thead><tbody>';
+
+            const rows = tableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                html += '<tr>' + row.innerHTML + '</tr>';
+            });
+            html += '</tbody></table></body></html>';
+
+            // Buat jendela baru untuk mencetak
+            const newWindow = window.open();
+            newWindow.document.write(html);
+            newWindow.document.close();
+            newWindow.focus();
+
+            // Tunggu sebentar lalu jalankan print
+            setTimeout(() => {
+                newWindow.print();
+                newWindow.close(); // Tutup jendela setelah print
+            }, 500);
+        });
+
+
+        // Load data saat halaman siap
+        window.addEventListener('DOMContentLoaded', () => {
+            loadBarangMasuk();
+        });
+    </script>
+</body>
+</html>

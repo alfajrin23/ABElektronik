@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Pengaturan Profil - ABElektronik</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #e6f0ff;
+      color: #004a99;
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      font-weight: 600;
+      font-size: 1.5rem;
+      color: #0056cc;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 4px;
+      color: #003d99;
+    }
+
+    input[type="text"],
+    input[type="url"]{
+      padding: 10px 12px;
+      font-size: 1rem;
+      border: 2px solid #0056cc;
+      border-radius: 8px;
+      outline-offset: 2px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box;
+      color: #003d99;
+      background-color: #ffffff;
+      font-weight: 500;
+    }
+
+    input[type="text"]:focus,
+    input[type="url"]:focus {
+      border-color: #004a99;
+      box-shadow: 0 0 8px rgba(0, 86, 204, 0.7);
+      outline: none;
+    }
+
+    .profile-photo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .profile-photo {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      border: 3px solid #0056cc;
+      object-fit: cover;
+      cursor: pointer;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .profile-photo:hover {
+      box-shadow: 0 0 8px rgba(0, 86, 204, 0.6);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button.save-btn {
+      background-color: #0056cc;
+      color: white;
+    }
+
+    button.save-btn:hover {
+      background-color: #004a99;
+    }
+
+    button.cancel-btn {
+      background-color: #cce0ff;
+      color: #003d99;
+    }
+
+    button.cancel-btn:hover {
+      background-color: #99bbff;
+      color: white;
+    }
+
+    #storeList .store-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #cce0ff;
+      cursor: pointer;
+      color: #003d99;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+    }
+
+    #storeList .store-item:last-child {
+      border-bottom: none;
+    }
+
+    #storeList .store-item:hover {
+      background-color: #e6f0ff;
+    }
+
+
+    /* Modal styles (dari contoh modal form) */
+    :root {
+      --primary-color: #4f46e5;
+      --accent-color: #6366f1;
+      --background-overlay: rgba(0, 0, 0, 0.5);
+      --input-bg: #f9fafb;
+      --input-border: #d1d5db;
+      --input-focus-border: var(--primary-color);
+      --btn-bg: var(--primary-color);
+      --btn-hover-bg: var(--accent-color);
+      --btn-text-color: #fff;
+    }
+
+    /* Modal overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: var(--background-overlay);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Modal content */
+    .modal {
+      background: white;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 460px;
+      padding: 28px 32px 32px 32px;
+      box-shadow: 0 12px 24px rgb(0 0 0 / 0.15);
+      transform: scale(0.85);
+      transition: transform 0.3s ease;
+      position: relative;
+    }
+    .modal-overlay.active .modal {
+      transform: scale(1);
+    }
+
+    /* Modal header */
+    .modal-header {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .modal-header svg {
+      width: 30px;
+      height: 30px;
+      fill: var(--primary-color);
+    }
+
+    /* Form modal */
+    #tambahTokoForm {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      align-items: center;
+    }
+
+    /* Avatar photo input wrapper & styles */
+    .avatar-wrapper {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      border: 3px solid var(--primary-color);
+      background-color: var(--input-bg);
+      box-shadow: 0 4px 8px rgb(79 70 229 / 0.25);
+      cursor: pointer;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: box-shadow 0.3s, border-color 0.3s;
+    }
+    .avatar-wrapper:hover {
+      box-shadow: 0 6px 14px rgb(79 70 229 / 0.5);
+      border-color: var(--accent-color);
+    }
+    .avatar-wrapper:focus-within {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 3px;
+    }
+
+    .avatar-wrapper svg.avatar-icon {
+      width: 48px;
+      height: 48px;
+      fill: #a5b4fc;
+      pointer-events: none;
+    }
+
+    .avatar-wrapper img.avatar-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Hide native file input */
+    #tambahTokoForm input[type="file"] {
+      display: none;
+    }
+
+    /* Input container with icon */
+    .input-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      pointer-events: none;
+      fill: #9ca3af;
+      width: 20px;
+      height: 20px;
+    }
+    #tambahTokoForm input[type="text"],
+    #tambahTokoForm input[type="url"] {
+      width: 100%;
+      padding: 12px 12px 12px 42px;
+      border-radius: 6px;
+      border: 1.5px solid var(--input-border);
+      background-color: var(--input-bg);
+      font-size: 16px;
+      transition: border-color 0.3s;
+      outline-offset: 2px;
+      outline-color: transparent;
+    }
+    #tambahTokoForm input[type="text"]:focus,
+    #tambahTokoForm input[type="url"]:focus {
+      border-color: var(--input-focus-border);
+      outline-color: var(--input-focus-border);
+    }
+    #tambahTokoForm input::placeholder {
+      color: #a1a1aa;
+    }
+
+    /* Save button */
+    .btn-save {
+      background-color: var(--btn-bg);
+      color: var(--btn-text-color);
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgb(79 70 229 / 0.4);
+      transition: background-color 0.3s;
+      width: 100%;
+    }
+    .btn-save:hover {
+      background-color: var(--btn-hover-bg);
+    }
+
+    /* Close button */
+    .close-button {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      outline: none;
+      fill: #9ca3af;
+      width: 28px;
+      height: 28px;
+      transition: fill 0.3s ease;
+    }
+    .close-button:hover {
+      fill: var(--primary-color);
+    }
+
+    /* Screen reader only */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    /* Button open modal */
+    #addNewStoreBtn {
+      width: 100%;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 8px;
+      padding: 10px 0;
+      cursor: pointer;
+      background-color: #0056cc;
+      color: white;
+      border: none;
+      transition: background-color 0.3s ease;
+      box-sizing: border-box;
+    }
+    #addNewStoreBtn:hover {
+      background-color: #004a99;
+    }
+    input[readonly] {
+      background-color: #e0e0e0;
+      color: #707070;
+      cursor: not-allowed;
+      pointer-events: none; /* mencegah klik/fokus */
+    }
+
+  </style>
+</head>
+<body>
+  <h2>Pengaturan Profil</h2>
+  <form id="profileForm">
+    <div class="profile-photo-container">
+      <label for="profilePhotoInput" aria-label="Ganti Foto Profil">
+        <img src="https://i.pravatar.cc/96" alt="Foto Profil" id="profilePhoto" class="profile-photo"/>
+      </label>
+      <input type="file" id="profilePhotoInput" accept="image/*" aria-label="Upload Foto Profil" />
+    </div>
+
+    <label for="storeName">Toko</label>
+    <input type="text" id="storeName" name="storeName" placeholder="Nama toko" readonly tabindex="-1" />
+
+    <label for="storeAddress">Alamat</label>
+    <input type="text" id="storeAddress" name="storeAddress" placeholder="Alamat toko" readonly tabindex="-1" />
+
+    <label for="addressLink">Link Alamat</label>
+    <input type="url" id="addressLink" name="addressLink" placeholder="URL lokasi toko" readonly tabindex="-1" />
+
+    <div id="storeList" style="
+      border: 2px solid #0056cc; 
+      border-radius: 8px; 
+      background-color: #ffffff;
+      max-height: 150px; 
+      overflow-y: auto; 
+      margin-top: 8px;
+      display: none;
+      box-sizing: border-box;
+      ">
+      <!-- List toko akan di-inject ke sini -->
+    </div>
+
+    <button type="button" id="addNewStoreBtn" aria-haspopup="dialog" aria-expanded="false">
+      + Tambah Toko Baru
+    </button>
+
+    <div class="buttons">
+      <button type="submit" class="save-btn">Simpan</button>
+      <button type="button" class="cancel-btn" id="cancelBtn">Batal </button>
+    </div>
+  </form>
+
+  <!-- Modal Tambah Toko Baru -->
+  <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" id="modalOverlay">
+    <div class="modal" role="document">
+      <button class="close-button" aria-label="Tutup modal" id="closeModalBtn" title="Tutup">&times;</button>
+      <div class="modal-header" id="modalTitle">
+        <!-- Store icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 9V21H21V9H3ZM21 7H3V5C3 4.44772 3.44772 4 4 4H20C20.5523 4 21 4.44772 21 5V7ZM5 15H7V18H5V15ZM10 15H14V18H10V15ZM17 15H19V18H17V15Z"/></svg>
+        Tambah Toko Baru
+      </div>
+      <form id="tambahTokoForm" novalidate>
+        <label for="fotoToko" class="avatar-wrapper" tabindex="0" aria-label="Upload foto toko">
+          <input type="file" id="fotoToko" name="fotoToko" accept="image/*" aria-describedby="fotoTokoDesc"/>
+          <img alt="Preview foto toko" class="avatar-preview" id="avatarPreview" src="https://cdn-icons-png.flaticon.com/512/3135/3135768.png" />
+          <svg class="avatar-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" style="display:none;">
+            <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2Zm-9-6a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm-5 6h10v-2H7v2Z"/>
+          </svg>
+        </label>
+        <span id="fotoTokoDesc" class="sr-only">Klik untuk upload foto toko. Hanya file gambar diperbolehkan.</span>
+
+        <label class="input-group" for="namaToko">
+          <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4Zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4Z"/></svg>
+          <input type="text" id="namaToko" name="namaToko" placeholder="Nama Toko" required />
+        </label>
+        <label class="input-group" for="alamatToko">
+          <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C8.134 2 5 5.134 5 9.5c0 4.152 5.5 11 5.5 11S16 13.652 16 9.5C16 5.134 12.866 2 12 2Zm0 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/></svg>
+          <input type="text" id="alamatToko" name="alamatToko" placeholder="Alamat" required />
+        </label>
+        <label class="input-group" for="linkAlamat">
+          <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3.9 12a5.1 5.1 0 0 1 5.1-5.1h4a5.1 5.1 0 0 1 0 10.2h-4a5.1 5.1 0 0 1-5.1-5.1Zm5.6 0a.9.9 0 0 0 .9-.9v-1.8a.9.9 0 0 0-1.8 0v1.8a.9.9 0 0 0 .9.9Zm6.5-.9a.9.9 0 1 0-1.8 0v1.8a.9.9 0 0 0 1.8 0v-1.8Zm-3.2-4.6h-2a.9.9 0 1 0 0 1.8h2a.9.9 0 1 0 0-1.8Z"/></svg>
+          <input type="url" id="linkAlamat" name="linkAlamat" placeholder="Link Alamat (URL lokasi toko)" pattern="https?://.+" required />
+        </label>
+        <button type="submit" class="btn-save">Simpan</button>
+      </form>
+    </div>
+  </div>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAo7In1g3-62iPRQ-ZRQPQ_Q6dQ2h0hpvE",
+    authDomain: "abelektronik-efaa0.firebaseapp.com",
+    projectId: "abelektronik-efaa0",
+    storageBucket: "abelektronik-efaa0.appspot.com",
+    messagingSenderId: "856011764579",
+    appId: "1:856011764579:web:c3cd7b545671b4cb789956",
+    databaseURL: "https://abelektronik-efaa0-default-rtdb.asia-southeast1.firebasedatabase.app"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
+  <script>
+// Main store array - will be the single source of truth
+let recommendedStores = [];
+
+const profilePhotoInput = document.getElementById('profilePhotoInput');
+const profilePhoto = document.getElementById('profilePhoto');
+const profileForm = document.getElementById('profileForm');
+const cancelBtn = document.getElementById('cancelBtn');
+const storeListContainer = document.getElementById('storeList');
+
+// Modal elements
+const addNewStoreBtn = document.getElementById('addNewStoreBtn');
+const modalOverlay = document.getElementById('modalOverlay');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const tambahTokoForm = document.getElementById('tambahTokoForm');
+const namaTokoInput = tambahTokoForm.namaToko;
+const alamatTokoInput = tambahTokoForm.alamatToko;
+const linkAlamatInput = tambahTokoForm.linkAlamat;
+const fotoTokoInput = tambahTokoForm.fotoToko;
+const avatarPreview = document.getElementById('avatarPreview');
+const avatarIcon = document.querySelector('.avatar-wrapper .avatar-icon');
+
+const defaultStoreLogo = "https://cdn-icons-png.flaticon.com/512/3135/3135768.png";
+
+// Manage profile photo changes
+profilePhotoInput.addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = async function(event) {
+      profilePhoto.src = event.target.result;
+
+      // Simpan foto ke Firebase Storage
+      const storageRef = storage.ref();
+      const profilePhotoRef = storageRef.child(`profile_photos/${file.name}`);
+      
+      try {
+        await profilePhotoRef.put(file);
+        const downloadURL = await profilePhotoRef.getDownloadURL();
+
+        // Simpan URL ke Firestore
+        const activeStoreId = localStorage.getItem('activeStoreId');
+        if (activeStoreId) {
+          await db.collection('stores').doc(activeStoreId).update({
+            profilePhoto: downloadURL // Simpan URL foto profil di Firestore
+          });
+        }
+
+        localStorage.setItem('profilePhoto', downloadURL); // Simpan di localStorage
+      } catch (error) {
+        console.error("Error uploading profile photo:", error);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+
+// Add a new store to Firestore
+async function addStore(storeData) {
+  try {
+    const storeRef = await db.collection('stores').add({
+      name: storeData.storeName,
+      address: storeData.storeAddress,
+      addressLink: storeData.addressLink,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Create empty documents for sub-collections
+    await storeRef.collection('products').doc('init').set({ initialized: true });
+    await storeRef.collection('history').doc('init').set({ initialized: true });
+
+    return storeRef.id;  // Return the new store ID
+  } catch (error) {
+    console.error("Error adding store:", error);
+    throw error;
+  }
+}
+
+// Update an existing store in Firestore
+async function updateStore(storeId, storeData) {
+  try {
+    await db.collection('stores').doc(storeId).update({
+      name: storeData.storeName,
+      address: storeData.storeAddress,
+      addressLink: storeData.addressLink,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating store:", error);
+    throw error;
+  }
+}
+
+
+// Fungsi untuk menghapus semua dokumen dalam sebuah koleksi (sub-koleksi)
+async function deleteCollection(collectionRef) {
+  const snapshot = await collectionRef.get();
+  if (snapshot.empty) return; // jika kosong, langsung return
+
+  const batch = db.batch();
+  snapshot.docs.forEach(doc => {
+    batch.delete(doc.ref); // hapus dokumen beserta idnya
+  });
+  await batch.commit();
+}
+
+
+async function deleteStore(storeId) {
+  try {
+    const storeRef = db.collection('stores').doc(storeId);
+
+    // Hapus dokumen di sub-koleksi products
+    await deleteCollection(storeRef.collection('products'));
+
+    // Hapus dokumen di sub-koleksi history
+    await deleteCollection(storeRef.collection('history'));
+
+    // Hapus dokumen toko utama
+    await storeRef.delete();
+
+    // Update local array dan UI seperti sebelumnya...
+    recommendedStores = recommendedStores.filter(store => store.id !== storeId);
+
+    const activeStoreId = localStorage.getItem('activeStoreId');
+    if (activeStoreId === storeId) {
+      localStorage.removeItem('activeStoreId');
+
+      if (recommendedStores.length > 0) {
+        localStorage.setItem('activeStoreId', recommendedStores[0].id);
+        document.getElementById('storeName').value = recommendedStores[0].storeName;
+        document.getElementById('storeAddress').value = recommendedStores[0].storeAddress;
+        document.getElementById('addressLink').value = recommendedStores[0].addressLink || '';
+      } else {
+        document.getElementById('storeName').value = '';
+        document.getElementById('storeAddress').value = '';
+        document.getElementById('addressLink').value = '';
+      }
+    }
+
+    renderStoreList();
+    return true;
+  } catch (error) {
+    console.error("Error deleting store and its subcollections:", error);
+    throw error;
+  }
+}
+
+
+// Handle form submission for adding/editing store
+tambahTokoForm.addEventListener('submit', async e => {
+  e.preventDefault();
+
+  if (!tambahTokoForm.checkValidity()) {
+    tambahTokoForm.reportValidity();
+    return;
+  }
+
+  const storeData = {
+    storeName: namaTokoInput.value.trim(),
+    storeAddress: alamatTokoInput.value.trim(),
+    addressLink: linkAlamatInput.value.trim()
+  };
+
+  const editingId = tambahTokoForm.dataset.editingId;
+
+  try {
+    if (editingId) {
+      // Update existing store
+      await updateStore(editingId, storeData);
+      
+      // Update local array
+      const index = recommendedStores.findIndex(s => s.id === editingId);
+      if (index !== -1) {
+        recommendedStores[index] = { 
+          ...recommendedStores[index], 
+          storeName: storeData.storeName,
+          storeAddress: storeData.storeAddress,
+          addressLink: storeData.addressLink
+        };
+      }
+
+      alert(`Toko "${storeData.storeName}" berhasil diperbarui!`);
+    } else {
+      // Add new store
+      const newStoreId = await addStore(storeData);
+      
+      // Add to local array without duplicating
+      const newStore = {
+        id: newStoreId,
+        storeName: storeData.storeName,
+        storeAddress: storeData.storeAddress,
+        addressLink: storeData.addressLink
+      };
+      
+      // Check if this store already exists in the array (prevent duplicates)
+      const existingIndex = recommendedStores.findIndex(s => s.id === newStoreId);
+      if (existingIndex === -1) {
+        recommendedStores.push(newStore);
+      }
+
+      // Set as active store if first store or if no active store
+      if (!localStorage.getItem('activeStoreId') || recommendedStores.length === 1) {
+        localStorage.setItem('activeStoreId', newStoreId);
+        document.getElementById('storeName').value = storeData.storeName;
+        document.getElementById('storeAddress').value = storeData.storeAddress;
+        document.getElementById('addressLink').value = storeData.addressLink;
+      }
+
+      alert(`Toko "${storeData.storeName}" berhasil ditambahkan!`);
+    }
+
+    renderStoreList();
+    closeModal();
+
+    // Update profile form if the active store was edited
+    const activeStoreId = localStorage.getItem('activeStoreId');
+    if (editingId && editingId === activeStoreId) {
+      document.getElementById('storeName').value = storeData.storeName;
+      document.getElementById('storeAddress').value = storeData.storeAddress;
+      document.getElementById('addressLink').value = storeData.addressLink;
+    }
+
+  } catch (error) {
+    console.error('Failed to save store:', error);
+    alert('Terjadi kesalahan saat menyimpan toko.');
+  }
+});
+
+// Fetch all stores from Firestore
+async function loadStores() {
+  try {
+    const snapshot = await db.collection('stores').orderBy('createdAt', 'desc').get();
+    
+    // Clear the array before adding stores to prevent duplicates
+    recommendedStores = [];
+    
+    snapshot.docs.forEach(doc => {
+      recommendedStores.push({
+        id: doc.id,
+        storeName: doc.data().name,
+        storeAddress: doc.data().address,
+        addressLink: doc.data().addressLink
+      });
+    });
+
+    renderStoreList();
+
+    // Set the first store as active if none is selected
+    const activeStoreId = localStorage.getItem('activeStoreId');
+    if (!activeStoreId && recommendedStores.length > 0) {
+      const firstStore = recommendedStores[0];
+      localStorage.setItem('activeStoreId', firstStore.id);
+
+      document.getElementById('storeName').value = firstStore.storeName;
+      document.getElementById('storeAddress').value = firstStore.storeAddress;
+      document.getElementById('addressLink').value = firstStore.addressLink || '';
+    } else if (activeStoreId) {
+      // If there's an active store, make sure its data is displayed
+      const activeStore = recommendedStores.find(s => s.id === activeStoreId);
+      if (activeStore) {
+        document.getElementById('storeName').value = activeStore.storeName;
+        document.getElementById('storeAddress').value = activeStore.storeAddress;
+        document.getElementById('addressLink').value = activeStore.addressLink || '';
+      }
+    }
+    
+  } catch (error) {
+    console.error('Failed to load stores:', error);
+    alert('Gagal memuat daftar toko.');
+  }
+}
+
+// Render the store list
+// Render the store list
+// Render the store list
+function renderStoreList() {
+    if (!recommendedStores || recommendedStores.length === 0) {
+        storeListContainer.style.display = 'none';
+        storeListContainer.innerHTML = '';
+        return;
+    }
+
+    let html = '';
+    const activeStoreId = localStorage.getItem('activeStoreId');
+
+    recommendedStores.forEach(store => {
+        const isActive = store.id === activeStoreId;
+        html += `
+            <div class="store-item" data-id="${store.id}" style="${isActive ? 'background-color:#cce0ff;' : ''}">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="flex-grow:1; cursor:pointer;">
+                        <strong>${store.storeName}</strong><br/>
+                        <small>${store.storeAddress}</small>
+                    </div>
+                    <div>
+                        <button class="edit-store-btn" data-id="${store.id}" aria-label="Edit ${store.storeName}" style="margin-right:6px;">✏️</button>
+                        <button class="delete-store-btn" data-id="${store.id}" aria-label="Delete ${store.storeName}">🗑️</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    storeListContainer.innerHTML = html;
+    storeListContainer.style.display = 'block';
+
+    // Select store on clicking store info (not buttons)
+    document.querySelectorAll('#storeList .store-item > div > div:first-child').forEach(item => {
+        item.addEventListener('click', () => {
+            const storeItem = item.closest('.store-item');
+            const selectedId = storeItem.getAttribute('data-id');
+            const selectedStore = recommendedStores.find(s => s.id === selectedId);
+            if (selectedStore) {
+                setActiveStore(selectedStore); // Call the function to set active store
+                renderStoreList(); // Refresh the store list
+            }
+        });
+    });
+
+    // Attach edit button event listeners
+    document.querySelectorAll('.edit-store-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            const store = recommendedStores.find(s => s.id === id);
+            if (store) {
+                openEditModal(store);
+            }
+        });
+    });
+
+    // Attach delete button event listeners
+    document.querySelectorAll('.delete-store-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            const store = recommendedStores.find(s => s.id === id);
+            if (store) {
+                if (confirm(`Apakah Anda yakin ingin menghapus toko "${store.storeName}"?`)) {
+                    deleteStore(id);
+                }
+            }
+        });
+    });
+}
+
+
+// Open the edit modal with store data
+function openEditModal(store) {
+  // Fill modal inputs with store data
+  namaTokoInput.value = store.storeName;
+  alamatTokoInput.value = store.storeAddress;
+  linkAlamatInput.value = store.addressLink || '';
+
+  // Show modal
+  openModal();
+
+  // Store the current editing store ID
+  tambahTokoForm.dataset.editingId = store.id;
+
+  // Change modal title to "Edit Toko"
+  document.getElementById('modalTitle').textContent = 'Edit Toko';
+
+  // Change save button text
+  tambahTokoForm.querySelector('.btn-save').textContent = 'Update';
+}
+
+// Load profile data from localStorage
+function loadProfileData() {
+  // If there's an active store selected, we should use its data
+  const activeStoreId = localStorage.getItem('activeStoreId');
+  if (activeStoreId) {
+    const activeStore = recommendedStores.find(s => s.id === activeStoreId);
+    if (activeStore) {
+      document.getElementById('storeName').value = activeStore.storeName;
+      document.getElementById('storeAddress').value = activeStore.storeAddress;
+      document.getElementById('addressLink').value = activeStore.addressLink || '';
+      return;
+    }
+  }
+  
+  // Fallback to localStorage if no active store
+  const storeName = localStorage.getItem('storeName') || '';
+  const storeAddress = localStorage.getItem('storeAddress') || '';
+  const addressLink = localStorage.getItem('addressLink') || '';
+
+  const storeNameInput = document.getElementById('storeName');
+  const storeAddressInput = document.getElementById('storeAddress');
+  const addressLinkInput = document.getElementById('addressLink');
+
+  if(storeNameInput) storeNameInput.value = storeName;
+  if(storeAddressInput) storeAddressInput.value = storeAddress;
+  if(addressLinkInput) addressLinkInput.value = addressLink;
+}
+
+// Save main profile form
+profileForm.addEventListener('submit', e => {
+  e.preventDefault();
+  
+  // If there's an active store, update it in Firestore
+  const activeStoreId = localStorage.getItem('activeStoreId');
+  if (activeStoreId) {
+    const storeData = {
+      storeName: profileForm.storeName.value.trim(),
+      storeAddress: profileForm.storeAddress.value.trim(),
+      addressLink: profileForm.addressLink.value.trim()
+    };
+    
+    updateStore(activeStoreId, storeData)
+      .then(() => {
+        // Update local store array
+        const index = recommendedStores.findIndex(s => s.id === activeStoreId);
+        if (index !== -1) {
+          recommendedStores[index] = { 
+            ...recommendedStores[index], 
+            storeName: storeData.storeName,
+            storeAddress: storeData.storeAddress,
+            addressLink: storeData.addressLink
+          };
+        }
+        
+        renderStoreList();
+        alert('Data profil berhasil disimpan!');
+      })
+      .catch(error => {
+        console.error('Failed to update store:', error);
+        alert('Gagal menyimpan data profil.');
+      });
+  } else {
+    // No active store, just save to localStorage
+    localStorage.setItem('storeName', profileForm.storeName.value.trim());
+    localStorage.setItem('storeAddress', profileForm.storeAddress.value.trim());
+    localStorage.setItem('addressLink', profileForm.addressLink.value.trim());
+    alert('Data profil berhasil disimpan!');
+  }
+});
+
+// Modal open function
+function openModal() {
+  modalOverlay.classList.add('active');
+  addNewStoreBtn.setAttribute('aria-expanded', 'true');
+  // Focus on the name input
+  setTimeout(() => namaTokoInput.focus(), 300);
+  document.body.style.overflow = 'hidden'; // disable background scroll
+}
+
+// Modal close function
+function closeModal() {
+  modalOverlay.classList.remove('active');
+  addNewStoreBtn.setAttribute('aria-expanded', 'false');
+  addNewStoreBtn.focus();
+  document.body.style.overflow = ''; // enable background scroll
+
+  // Reset modal form and editing state
+  tambahTokoForm.reset();
+  avatarPreview.src = defaultStoreLogo;
+  avatarIcon.style.display = 'none';
+  delete tambahTokoForm.dataset.editingId;
+
+  // Reset modal title and button text
+  document.getElementById('modalTitle').textContent = 'Tambah Toko Baru';
+  tambahTokoForm.querySelector('.btn-save').textContent = 'Simpan';
+}
+
+// Preview foto toko di modal
+fotoTokoInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      avatarPreview.src = event.target.result;
+      avatarPreview.style.display = 'block';
+      avatarIcon.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  } else {
+    avatarPreview.src = defaultStoreLogo;
+    avatarPreview.style.display = 'block';
+    avatarIcon.style.display = 'none';
+  }
+});
+
+// Close modal with ESC key
+window.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+    closeModal();
+  }
+});
+
+// Open modal when "Add New Store" button is clicked
+addNewStoreBtn.addEventListener('click', () => {
+  // Reset form for new store
+  tambahTokoForm.reset();
+  avatarPreview.src = defaultStoreLogo;
+  avatarIcon.style.display = 'none';
+  delete tambahTokoForm.dataset.editingId;
+
+  // Set modal title and save button text to default
+  document.getElementById('modalTitle').textContent = 'Tambah Toko Baru';
+  tambahTokoForm.querySelector('.btn-save').textContent = 'Simpan';
+
+  openModal();
+});
+
+// Close modal when close button is clicked
+closeModalBtn.addEventListener('click', closeModal);
+
+// Cancel button on main form
+cancelBtn.addEventListener('click', () => {
+  loadProfileData();
+  window.location.href = 'index.html';  // Arahkan ke index.html setelah alert
+});
+
+function saveActiveStoreToLocalStorage(store) {
+  localStorage.setItem('activeStore', JSON.stringify(store));
+}
+
+// Panggil fungsi ini setiap kali user memilih toko
+function setActiveStore(store) {
+    localStorage.setItem('activeStoreId', store.id);
+    localStorage.setItem('storeName', store.storeName);
+    localStorage.setItem('storeAddress', store.storeAddress);
+    localStorage.setItem('addressLink', store.addressLink || '');
+    
+    // Arahkan kembali ke index.html
+    window.location.href = 'index.html';
+}
+
+
+
+// Initialize once on page load
+window.addEventListener('DOMContentLoaded', () => {
+  // Load profile photo
+  const savedPhoto = localStorage.getItem('profilePhoto');
+  if(savedPhoto && profilePhoto) {
+    profilePhoto.src = savedPhoto;
+  }
+  
+  // Load stores from Firestore
+  loadStores();
+});
+  </script>
+</body>
+</html>

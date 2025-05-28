@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Laporan Pendapatan Bulanan</title>
+  <style>
+    /* Reset */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      transition: background 0.5s ease;
+    }
+    .container {
+      max-width: 390px;
+      width: 100%;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 20px 18px 25px 18px;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      max-height: 700px;
+      transition: transform 0.5s ease;
+      overflow-y: auto;
+    }
+    h1 {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: #1f2937;
+      margin-bottom: 20px;
+      position: relative;
+      text-align: center;
+      letter-spacing: 0.03em;
+      line-height: 1.3;
+      font-family: 'Segoe UI Black', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    h1::after {
+      content: "";
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(90deg, #2563eb, #10b981);
+      border-radius: 2px;
+      box-shadow: 0 0 8px #2563ebaa, 0 0 8px #10b981aa;
+    }
+    .filter-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    label {
+      font-weight: 600;
+      font-size: 0.8rem;
+      margin-bottom: 5px;
+      color: #334155;
+      user-select: none;
+    }
+    select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1.5px solid #cbd5e1;
+      font-size: 0.9rem;
+      color: #1e293b;
+      background-color: #f8fafc;
+      transition: border-color 0.3s ease;
+      cursor: pointer;
+    }
+    select:hover, select:focus {
+      border-color: #2563eb;
+      outline: none;
+      box-shadow: 0 0 6px #2563eb99;
+    }
+    .button-row {
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+      transition: background-color 0.3s ease, transform 0.25s ease, box-shadow 0.25s ease;
+      user-select: none;
+      white-space: nowrap;
+      flex: 1;
+      justify-content: center;
+    }
+    button svg {
+      width: 16px;
+      height: 16px;
+    }
+    button:hover {
+      background-color: #1e40af;
+      transform: scale(1.02);
+      box-shadow: 0 6px 18px rgba(30, 64, 175, 0.5);
+    }
+    button:active {
+      transform: scale(0.98);
+      box-shadow: 0 3px 10px rgba(30, 64, 175, 0.4);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      background-color: #f9fafb;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      word-break: break-word;
+    }
+    thead tr {
+      background: linear-gradient(90deg, #2563eb, #10b981);
+      color: white;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    th, td {
+      padding: 10px 8px;
+      text-align: center;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.75rem;
+    }
+    th {
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    tbody tr:hover {
+      background-color: #dbeafe;
+      transition: background-color 0.3s ease;
+    }
+    caption {
+      caption-side: bottom;
+      padding-top: 8px;
+      font-style: italic;
+      color: #64748b;
+      text-align: center;
+      font-size: 0.75rem;
+    }
+    .summary {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1e293b;
+      text-align: center;
+            background: linear-gradient(90deg, #f0f9ff, #ecfdf5);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e0e7ff;
+      line-height: 1.3;
+    }
+    /* Responsive untuk layar sangat kecil */
+    @media (max-width: 390px) {
+      .container {
+        max-width: 100%;
+        padding: 15px 12px 20px 12px;
+        margin: 10px;
+      }
+      h1 {
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+      }
+      button {
+        font-size: 0.8rem;
+        padding: 8px 10px;
+      }
+      table, th, td {
+        font-size: 0.7rem;
+      }
+      th, td {
+        padding: 8px 6px;
+      }
+      .summary {
+        font-size: 0.85rem;
+      }
+    }
+    /* Untuk layar mobile yang sangat kecil, gunakan layout stack */
+    @media (max-width: 350px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+      tr {
+        margin-bottom: 12px;
+        border-bottom: 2px solid #eee;
+        border-radius: 8px;
+        background: white;
+        padding: 8px;
+      }
+      td {
+        border: none;
+        position: relative;
+        padding-left: 45%;
+        text-align: left;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        font-size: 0.75rem;
+      }
+      td:before {
+        position: absolute;
+        left: 8px;
+        top: 8px;
+        white-space: nowrap;
+        font-weight: 600;
+        color: #334155;
+        font-size: 0.7rem;
+      }
+      td:nth-of-type(1):before { content: "Tanggal"; }
+      td:nth-of-type(2):before { content: "Nama Barang"; }
+      td:nth-of-type(3):before { content: "Qty"; }
+      td:nth-of-type(4):before { content: "Harga"; }
+      td:nth-of-type(5):before { content: "Total"; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container" role="main" aria-label="Laporan Pendapatan Bulanan">
+    <h1 id="page-title">Laporan Pendapatan Bulanan</h1>
+    <section class="filter-section" aria-label="Filter laporan pendapatan bulanan">
+      <div class="input-group">
+        <label for="month-filter">Pilih Bulan</label>
+        <select id="month-filter" aria-label="Pilih bulan laporan pendapatan"></select>
+      </div>
+      <div class="button-row">
+        <button id="refresh-btn" type="button" aria-label="Refresh Tampilan Bulanan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M4 4v5h.582M20 20v-5h-.581M16.5 4.5a7 7 0 1 0-9.9 9.9l.7-.7" />
+          </svg>
+          Refresh
+        </button>
+        <button id="pdf-btn" type="button" aria-label="Simpan PDF">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M9 14h6M9 18h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          PDF
+        </button>
+      </div>
+    </section>
+    <table aria-describedby="monthly-table-desc" id="monthly-table">
+      <caption id="monthly-table-desc">Tabel data laporan pendapatan bulanan.</caption>
+      <thead>
+        <tr>
+          <th>Tanggal</th>
+          <th>Nama Barang</th>
+          <th>Qty</th>
+          <th>Harga (Rp)</th>
+          <th>Total (Rp)</th>
+        </tr>
+      </thead>
+      <tbody id="monthly-table-body"></tbody>
+    </table>
+    <div class="summary" aria-live="polite" aria-atomic="true" id="monthly-total">
+      Total Pendapatan Bulanan: Rp 0
+    </div>
+  </main>
+  
+  <!-- Firebase App (core SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <!-- Firebase Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <!-- Your Firebase config -->
+  <script src="firebase-config.js"></script>
+
+  <script>
+    const activeStoreId = localStorage.getItem('activeStoreId');
+    const monthFilter = document.getElementById('month-filter');
+    const monthlyTableBody = document.getElementById('monthly-table-body');
+    const monthlyTotal = document.getElementById('monthly-total');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const pdfBtn = document.getElementById('pdf-btn');
+
+    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const currentYear = new Date().getFullYear();
+
+    // Populate month select
+    function populateMonthSelect() {
+      monthNames.forEach((name, i) => {
+        const option = document.createElement('option');
+        option.value = i + 1;
+        option.textContent = name;
+        monthFilter.appendChild(option);
+      });
+      monthFilter.value = new Date().getMonth() + 1;
+    }
+
+    // Fetch products map from Firestore
+    async function fetchProductsMap() {
+      const snapshot = await firebaseUtils.productsCollection.get();
+      const map = {};
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        map[data.namaBarang] = data.harga || 0;
+      });
+      return map;
+    }
+
+    // Fetch monthly transactions from Firestore with storeId filter
+    async function fetchMonthlyTransactions(year, month, storeId) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999); // Akhir hari bulan
+
+      const productsMap = await fetchProductsMap();
+
+      const snapshot = await firebaseUtils.historyCollection
+        .where('tanggal', '>=', startDate)
+        .where('tanggal', '<=', endDate)
+        .where('kategori', '==', 'keluar')
+        .orderBy('tanggal')
+        .get();
+
+      // Filter berdasarkan storeId di client side
+      const filteredDocs = snapshot.docs.filter(doc => {
+        const data = doc.data();
+        return data.storeId === storeId;
+      });
+
+      return filteredDocs.map(doc => {
+        const data = doc.data();
+        const tanggal = data.tanggal.toDate ? data.tanggal.toDate() : new Date(data.tanggal);
+        const namaBarang = data.namaBarang || data.item || '-';
+        const qty = data.jumlah || 0;
+        const price = productsMap[namaBarang] || 0;
+        const total = qty * price;
+        return { date: tanggal, item: namaBarang, qty, price, total };
+      });
+    }
+
+    // Format currency Rp
+    function formatCurrency(val) {
+      return val.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+    }
+
+    // Render table rows
+    function renderTable(data) {
+      monthlyTableBody.innerHTML = '';
+      data.forEach(tx => {
+        const dateStr = tx.date.toISOString().split('T')[0];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${dateStr}</td>
+          <td>${tx.item}</td>
+          <td>${tx.qty}</td>
+          <td>${formatCurrency(tx.price)}</td>
+          <td>${formatCurrency(tx.total)}</td>
+        `;
+        monthlyTableBody.appendChild(tr);
+      });
+    }
+
+    // Compute total income
+    function computeTotal(data) {
+      return data.reduce((acc, cur) => acc + cur.total, 0);
+    }
+
+    // Refresh view to load transactions and update UI
+    async function refreshView() {
+      const month = parseInt(monthFilter.value);
+      const storeId = localStorage.getItem('activeStoreId');
+      if (!storeId) {
+        alert('Store aktif tidak ditemukan. Silakan pilih toko terlebih dahulu.');
+        return;
+      }
+      const data = await fetchMonthlyTransactions(currentYear, month, storeId);
+      renderTable(data);
+      monthlyTotal.textContent = formatCurrency(computeTotal(data));
+    }
+
+    // PDF printing functionality
+    pdfBtn.addEventListener('click', () => {
+    const monthIndex = parseInt(monthFilter.value) - 1;
+    const monthName = monthNames[monthIndex];
+    const dataRows = monthlyTableBody.innerHTML;
+    const totalText = monthlyTotal.textContent;
+
+    const style = `
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px;}
+            h1 { text-align: center; color: #2563eb; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px;}
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+            th { background: linear-gradient(90deg, #2563eb, #10b981); color: white; }
+            caption { caption-side: bottom; font-style: italic; color: #555; margin-top: 8px;}
+            .summary { font-weight: 700; font-size: 1.1rem; margin-top: 15px; text-align: right; }
+        </style>
+    `;
+
+    const html = `
+    <html>
+        <head><title>Laporan Pendapatan Bulanan - ${monthName}</title>${style}</head>
+        <body>
+            <h1>Laporan Pendapatan Bulanan (${monthName} ${currentYear})</h1>
+            <table>
+                <caption>Laporan pendapatan transaksi bulan ${monthName} tahun ${currentYear}</caption>
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Nama Barang</th>
+                        <th>Qty</th>
+                        <th>Harga (Rp)</th>
+                        <th>Total (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${dataRows}
+                </tbody>
+            </table>
+            <div class="summary">Total Pendapatan Bulanan: ${totalText}</div>
+        </body>
+    </html>
+    `;
+
+    const newWindow = window.open();
+    newWindow.document.write(html);
+    newWindow.document.close();
+    newWindow.focus();
+    newWindow.print();
+});
+
+
+    // Event listeners for filters and buttons
+    monthFilter.addEventListener('change', refreshView);
+    refreshBtn.addEventListener('click', refreshView);
+
+    // Initialize
+    populateMonthSelect();
+    refreshView();
+  </script>
+</body>
+</html>

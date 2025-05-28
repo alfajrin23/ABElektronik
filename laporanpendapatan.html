@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Laporan Pendapatan Tahunan</title>
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 15px;
+    transition: background 0.5s ease;
+  }
+  .container {
+    max-width: 390px;
+    width: 100%;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    padding: 20px 18px 25px 18px;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+    max-height: 90vh;
+    overflow-y: auto;
+    transition: transform 0.5s ease;
+  }
+  h1 {
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: #1f2937;
+    margin-bottom: 18px;
+    position: relative;
+    text-align: center;
+    letter-spacing: 0.03em;
+    font-family: 'Segoe UI Black', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  h1::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: linear-gradient(90deg, #2563eb, #10b981);
+    border-radius: 2px;
+    box-shadow: 0 0 8px #2563ebaa, 0 0 8px #10b981aa;
+  }
+  .nav-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .nav-button {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    transition: background-color 0.3s ease, transform 0.25s ease;
+    user-select: none;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 80px;
+  }
+  .nav-button:hover {
+    background-color: #1e40af;
+    transform: scale(1.02);
+  }
+  .nav-button:active {
+    transform: scale(0.98);
+  }
+  .filter-section {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+  }
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 80px;
+  }
+  label {
+    font-weight: 600;
+    font-size: 0.75rem;
+    margin-bottom: 4px;
+    color: #334155;
+    user-select: none;
+  }
+  select {
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1.5px solid #cbd5e1;
+    font-size: 0.8rem;
+    color: #1e293b;
+    background-color: #f8fafc;
+    transition: border-color 0.3s ease;
+    cursor: pointer;
+  }
+  select:hover, select:focus {
+    border-color: #2563eb;
+    outline: none;
+    box-shadow: 0 0 6px #2563eb99;
+  }
+  button.action-button {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    transition: background-color 0.3s ease, transform 0.25s ease, box-shadow 0.25s ease;
+    user-select: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  button.action-button:hover {
+    background-color: #1e40af;
+    transform: scale(1.02);
+    box-shadow: 0 6px 18px rgba(30, 64, 175, 0.5);
+  }
+  button.action-button:active {
+    transform: scale(0.98);
+    box-shadow: 0 3px 12px rgba(30, 64, 175, 0.4);
+  }
+  button svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+  }
+  button:hover svg {
+    transform: scale(1.1);
+  }
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    background-color: #f9fafb;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    word-break: break-word;
+  }
+  thead tr {
+    background: linear-gradient(90deg, #2563eb, #10b981);
+    color: white;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  th, td {
+    padding: 8px 6px;
+    text-align: center;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.75rem;
+  }
+  th {
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  tbody tr:hover {
+    background-color: #dbeafe;
+    transition: background-color 0.3s ease;
+  }
+  caption {
+    caption-side: bottom;
+    padding-top: 8px;
+    font-style: italic;
+    color: #64748b;
+    text-align: center;
+    font-size: 0.7rem;
+  }
+  .summary {
+    margin-top: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-align: center;
+    background: linear-gradient(90deg, #f0f9ff, #ecfdf5);
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #e0e7ff;
+  }
+  /* Specific column widths for better layout */
+  th:nth-child(1), td:nth-child(1) { width: 22%; } /* Tanggal */
+  th:nth-child(2), td:nth-child(2) { width: 28%; } /* Nama Barang */
+  th:nth-child(3), td:nth-child(3) { width: 12%; } /* Qty */
+  th:nth-child(4), td:nth-child(4) { width: 19%; } /* Harga */
+  th:nth-child(5), td:nth-child(5) { width: 19%; } /* Total */
+  
+  /* Mobile-first responsive adjustments */
+  @media (max-width: 400px) {
+    .container {
+      max-width: 100%;
+      padding: 15px;
+      margin: 10px;
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+    }
+    .nav-button {
+      font-size: 0.7rem;
+      padding: 6px 8px;
+    }
+    .filter-section {
+      gap: 6px;
+    }
+    .action-button {
+      font-size: 0.65rem;
+      padding: 5px 8px;
+    }
+    button svg {
+      width: 12px;
+      height: 12px;
+    }
+    th, td {
+      padding: 6px 4px;
+      font-size: 0.65rem;
+    }
+    th {
+      font-size: 0.6rem;
+    }
+    .summary {
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+  }
+  .loading {
+    text-align: center;
+    padding: 20px;
+    color: #64748b;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+<main class="container" role="main" aria-label="Laporan Pendapatan Tahunan">
+
+  <h1 id="page-title">Laporan Pendapatan Tahunan</h1>
+
+  <div class="nav-buttons" role="tablist" aria-label="Navigasi Laporan Pendapatan">
+    <button class="nav-button" id="btn-daily" type="button">Harian</button>
+    <button class="nav-button" id="btn-weekly" type="button">Mingguan</button>
+    <button class="nav-button" id="btn-monthly" type="button">Bulanan</button>
+  </div>
+
+  <div class="filter-section" aria-label="Filter laporan pendapatan tahunan">
+    <div class="input-group">
+      <label for="year-filter">Pilih Tahun</label>
+      <select id="year-filter" aria-label="Pilih tahun laporan pendapatan">
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+      </select>
+    </div>
+    <button id="refresh-btn" class="action-button" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M4 4v5h.582M20 20v-5h-.581M16.5 4.5a7 7 0 1 0-9.9 9.9l.7-.7" />
+      </svg>
+      Refresh
+    </button>
+    <button id="pdf-btn" class="action-button" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M14 2v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M9 14h6M9 18h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Simpan PDF
+    </button>
+  </div>
+  
+  <div class="table-container">
+    <table aria-describedby="yearly-table-desc" id="yearly-table">
+      <caption id="yearly-table-desc">Tabel data laporan pendapatan tahunan.</caption>
+      <thead>
+        <tr>
+          <th>Tanggal</th>
+          <th>Nama Barang</th>
+          <th>Qty</th>
+          <th>Harga (Rp)</th>
+          <th>Total (Rp)</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <tr>
+          <td colspan="5" class="loading">Memuat data...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="summary" aria-live="polite" aria-atomic="true" id="total-revenue">
+    Total Pendapatan: Rp 0
+  </div>
+
+  <!-- Firebase App (core SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <!-- Firebase Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <!-- Your Firebase config -->
+  <script src="firebase-config.js"></script>
+
+  <script>
+    const activeStoreId = localStorage.getItem('activeStoreId');
+    
+    const pageTitle = document.getElementById('page-title');
+    const yearFilter = document.getElementById('year-filter');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const pdfBtn = document.getElementById('pdf-btn');
+    const tableBody = document.getElementById('table-body');
+    const totalRevenueSpan = document.getElementById('total-revenue');
+
+    // Set initial year to current year
+    const currentYear = new Date().getFullYear();
+    yearFilter.value = currentYear;
+    pageTitle.textContent = `Laporan Pendapatan Tahunan ${currentYear}`;
+
+
+async function fetchTransactionsByYear(year) {
+  try {
+    const start = new Date(year, 0, 1); // Awal tahun
+    const end = new Date(year, 11, 31, 23, 59, 59, 999); // Akhir tahun
+
+    const snapshot = await db.collection('history')
+      .where('kategori', '==', 'keluar')
+      .where('tanggal', '>=', start)
+      .where('tanggal', '<=', end)
+      .get();
+
+    const productsSnapshot = await db.collection('products').get();
+    const productPrices = {};
+    productsSnapshot.forEach(doc => {
+      const data = doc.data();
+      productPrices[data.namaBarang] = data.harga || 0;
+    });
+
+    const transactions = snapshot.docs.map(doc => {
+      const data = doc.data();
+      const namaBarang = data.namaBarang || 'Unknown';
+      const qty = data.jumlah || 0;
+      const price = productPrices[namaBarang] || 0;
+      const total = qty * price;
+
+      // Format date as YYYY-MM-DD
+      let formattedDate = '';
+      if (data.tanggal && data.tanggal.toDate) {
+        formattedDate = data.tanggal.toDate().toISOString().split('T')[0];
+      }
+
+      return {
+        date: formattedDate,
+        item: namaBarang,
+        qty,
+        price,
+        total,
+        timestamp: data.tanggal,
+        storeId: data.storeId // Pastikan untuk menyimpan storeId
+      };
+    });
+
+    // Filter transactions based on active store ID
+    return transactions.filter(tx => tx.storeId === activeStoreId);
+
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
+    throw error;
+  }
+}
+
+    // Format currency Rp
+    function formatCurrency(val) {
+      return val.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+    }
+
+    // Render transactions in table
+    function renderTable(data) {
+      tableBody.innerHTML = '';
+      if (data.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="5" class="loading">Tidak ada data untuk tahun ini</td>';
+        tableBody.appendChild(tr);
+        return;
+      }
+
+      data.forEach(tx => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${tx.date}</td>
+          <td>${tx.item}</td>
+          <td>${tx.qty}</td>
+          <td>${formatCurrency(tx.price)}</td>
+          <td>${formatCurrency(tx.total)}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    // Update total revenue display
+    function updateTotal(data) {
+      const total = data.reduce((sum, tx) => sum + tx.total, 0);
+      totalRevenueSpan.textContent = `Total Pendapatan Tahun ${yearFilter.value}: ${formatCurrency(total)}`;
+    }
+
+    // Refresh view based on filter year
+    async function refreshView() {
+      const selectedYear = parseInt(yearFilter.value);
+      pageTitle.textContent = `Laporan Pendapatan Tahunan ${selectedYear}`;
+      
+      // Show loading
+      tableBody.innerHTML = '<tr><td colspan="5" class="loading">Memuat data...</td></tr>';
+      totalRevenueSpan.textContent = 'Total Pendapatan: Memuat...';
+
+      try {
+        const data = await fetchTransactionsByYear(selectedYear);
+        renderTable(data);
+        updateTotal(data);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        tableBody.innerHTML = '<tr><td colspan="5" class="loading">Gagal memuat data</td></tr>';
+        totalRevenueSpan.textContent = 'Total Pendapatan: Error';
+        alert('Gagal memuat data: ' + error.message);
+      }
+    }
+
+    // Event listeners
+    yearFilter.addEventListener('change', refreshView);
+    refreshBtn.addEventListener('click', refreshView);
+
+    // Navigation button functionality - redirect to respective pages
+    document.getElementById('btn-daily').addEventListener('click', () => {
+      window.location.href = 'pendapatanharian.html';
+    });
+    
+    document.getElementById('btn-weekly').addEventListener('click', () => {
+      window.location.href = 'pendapatanmingguan.html';
+    });
+    
+    document.getElementById('btn-monthly').addEventListener('click', () => {
+      window.location.href = 'pendapatanbulanan.html';
+    });
+
+    // PDF generation
+    pdfBtn.addEventListener('click', () => {
+    const selectedYear = yearFilter.value;
+    const dataRows = tableBody.innerHTML;
+    const totalText = totalRevenueSpan.textContent;
+
+    const style = `
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px;}
+            h1 { text-align: center; color: #2563eb; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px;}
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+            th { background: linear-gradient(90deg, #2563eb, #10b981); color: white; }
+            caption { caption-side: bottom; font-style: italic; color: #555; margin-top: 8px;}
+            .summary { font-weight: 700; font-size: 1.1rem; margin-top: 15px; text-align: right; }
+            .loading { font-style: italic; color: #666; }
+        </style>
+    `;
+
+    const html = `
+        <html>
+            <head><title>Laporan Pendapatan Tahunan ${selectedYear}</title>${style}</head>
+            <body>
+                <h1>Laporan Pendapatan Tahunan ${selectedYear}</h1>
+                <table>
+                    <caption>Laporan pendapatan transaksi untuk tahun ${selectedYear}</caption>
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Nama Barang</th>
+                            <th>Qty</th>
+                            <th>Harga (Rp)</th>
+                            <th>Total (Rp)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${dataRows}
+                    </tbody>
+                </table>
+                <div class="summary">${totalText}</div>
+            </body>
+        </html>
+    `;
+
+    const newWindow = window.open();
+    newWindow.document.write(html);
+    newWindow.document.close();
+    newWindow.focus();
+    newWindow.print();
+});
+
+
+    // Initialize Firebase and load data when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check if Firebase is initialized
+      if (typeof firebase === 'undefined') {
+        console.error('Firebase not loaded');
+        tableBody.innerHTML = '<tr><td colspan="5" class="loading">Firebase tidak terhubung</td></tr>';
+        return;
+      }
+
+      // Initialize Firestore
+      if (!window.db) {
+        window.db = firebase.firestore();
+      }
+
+      // Initial load
+      refreshView();
+    });
+  </script>
+</main>
+</body>
+</html>
