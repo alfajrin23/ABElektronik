@@ -1152,120 +1152,57 @@ function showBarcodeModal(selectedProducts) {
 
 // Fungsi untuk download PNG (Android compatible)
 function downloadAsZip(barcodes) {
-    // Deteksi jika running di dalam WebView/APK
-    const isAndroidApp = /Android/.test(navigator.userAgent) && 
-                        (window.location.protocol === 'file:' || 
-                         window.AndroidInterface || 
-                         typeof Android !== 'undefined');
+    // Untuk Android APK, kita akan membuat zip dan download melalui browser
+    barcodes.forEach((barcodeData, index) => {
+        setTimeout(() => {
+            // Convert canvas to base64
+            const dataURL = barcodeData.canvas.toDataURL('image/png');
+            
+            // Buat link download yang kompatibel dengan Android
+            const downloadLink = createDownloadableLink(dataURL, barcodeData.filename);
+            
+            // Buka link di browser untuk download
+            if (window.Android) {
+                // Jika dalam WebView Android, gunakan interface Android
+                window.Android.downloadFile(dataURL, barcodeData.filename);
+            } else {
+                // Fallback: buka di browser external
+                window.open(downloadLink, '_blank');
+            }
+        }, index * 500);
+    });
+}
+
+// Fungsi untuk membuat link download yang dapat diakses browser
+function createDownloadableLink(dataURL, filename) {
+    // Konversi dataURL ke format yang bisa didownload
+    const base64Data = dataURL.split(',')[1];
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
     
-    if (isAndroidApp) {
-        // Method khusus untuk Android APK
-        barcodes.forEach((barcodeData, index) => {
-            setTimeout(() => {
-                try {
-                    // Convert canvas to base64
-                    const dataURL = barcodeData.canvas.toDataURL('image/png');
-                    
-                    // Create temporary link dengan data URL
-                    const link = document.createElement('a');
-                    link.href = dataURL;
-                    link.download = barcodeData.filename;
-                    
-                    // Trigger download
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                } catch (error) {
-                    console.error('Download error:', error);
-                    // Fallback: copy to clipboard atau show image
-                    showImagePreview(barcodeData.canvas, barcodeData.filename);
-                }
-            }, index * 300);
-        });
-    } else {
-        // Method untuk browser biasa
-        barcodes.forEach((barcodeData, index) => {
-            setTimeout(() => {
-                barcodeData.canvas.toBlob(function(blob) {
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = barcodeData.filename;
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                }, 'image/png');
-            }, index * 300);
-        });
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
     }
+    
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], {type: 'image/png'});
+    
+    // Buat temporary URL yang bisa diakses browser
+    const url = URL.createObjectURL(blob);
+    
+    // Buat link element untuk download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    
+    // Tambahkan ke DOM sementara
+    document.body.appendChild(link);
+    
+    return url;
 }
 
-function showImagePreview(canvas, filename) {
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.9);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        padding: 20px;
-        box-sizing: border-box;
-    `;
-    
-    const img = document.createElement('img');
-    img.src = canvas.toDataURL('image/png');
-    img.style.cssText = `
-        max-width: 90%;
-        max-height: 70%;
-        border: 2px solid white;
-        border-radius: 10px;
-    `;
-    
-    const instructions = document.createElement('div');
-    instructions.style.cssText = `
-        color: white;
-        text-align: center;
-        margin-top: 20px;
-        font-size: 16px;
-        line-height: 1.5;
-    `;
-    instructions.innerHTML = `
-        <strong>${filename}</strong><br>
-        Tekan dan tahan gambar untuk menyimpan<br>
-        atau screenshot halaman ini
-    `;
-    
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ Tutup';
-    closeBtn.style.cssText = `
-        background: #dc3545;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        margin-top: 20px;
-        font-size: 16px;
-        cursor: pointer;
-    `;
-    
-    closeBtn.onclick = () => document.body.removeChild(modal);
-    modal.onclick = (e) => {
-        if (e.target === modal) document.body.removeChild(modal);
-    };
-    
-    modal.appendChild(img);
-    modal.appendChild(instructions);
-    modal.appendChild(closeBtn);
-    document.body.appendChild(modal);
-}
-
-// 3. Update fungsi generatePDF untuk kompatibilitas Android
+// Ganti fungsi generatePDF dengan yang kompatibel Android
 function generatePDF(barcodes) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -1287,66 +1224,108 @@ function generatePDF(barcodes) {
         currentY += barcodeHeight + 10;
     });
 
+    // Generate PDF sebagai blob
+    const pdfBlob = pdf.output('blob');
     const filename = `barcodes_${new Date().getTime()}.pdf`;
     
-    // Deteksi Android dan gunakan method yang sesuai
-    const isAndroidApp = /Android/.test(navigator.userAgent) && 
-                        (window.location.protocol === 'file:' || 
-                         window.AndroidInterface || 
-                         typeof Android !== 'undefined');
-    
-    if (isAndroidApp) {
-        // Untuk Android, convert PDF ke base64 dan buat data URL
-        try {
-            const pdfDataURL = pdf.output('datauristring');
-            const link = document.createElement('a');
-            link.href = pdfDataURL;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (error) {
-            console.error('PDF download error:', error);
-            alert('Tidak dapat mendownload PDF. Coba gunakan fitur Save PNG sebagai gantinya.');
-        }
+    // Untuk Android APK
+    if (window.Android) {
+        // Konversi blob ke base64 untuk Android interface
+        const reader = new FileReader();
+        reader.onload = function() {
+            const base64Data = reader.result.split(',')[1];
+            window.Android.downloadPDF(base64Data, filename);
+        };
+        reader.readAsDataURL(pdfBlob);
     } else {
-        // Method normal untuk browser
-        pdf.save(filename);
+        // Fallback: buka di browser external
+        const url = URL.createObjectURL(pdfBlob);
+        window.open(url, '_blank');
+        
+        // Cleanup URL setelah beberapa detik
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+        }, 5000);
     }
 }
 
-// 4. Tambah fungsi untuk deteksi platform dan show appropriate message
-function showDownloadMessage() {
-    const isAndroid = /Android/.test(navigator.userAgent);
-    const isAPK = window.location.protocol === 'file:' || 
-                  window.AndroidInterface || 
-                  typeof Android !== 'undefined';
-    
-    if (isAndroid && isAPK) {
-        const message = document.createElement('div');
-        message.style.cssText = `
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            background: #17a2b8;
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 14px;
-            z-index: 1000;
-            text-align: center;
-        `;
-        message.textContent = 'Mode Android: File akan tersimpan di folder Download';
-        document.body.appendChild(message);
-        
-        setTimeout(() => {
-            if (document.body.contains(message)) {
-                document.body.removeChild(message);
+// Fungsi alternatif untuk download dengan membuka di browser external
+function downloadViaBrowser(dataURL, filename, type = 'image/png') {
+    // Buat HTML page sementara untuk download
+    const downloadPage = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Download ${filename}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                padding: 20px;
+                text-align: center;
+                background: #f5f5f5;
             }
-        }, 3000);
-    }
+            .download-container {
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                margin: 20px auto;
+                max-width: 400px;
+            }
+            .download-btn {
+                background: #4a69ff;
+                color: white;
+                padding: 15px 30px;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                cursor: pointer;
+                margin: 10px;
+                text-decoration: none;
+                display: inline-block;
+            }
+            .download-btn:hover {
+                background: #2a3eb1;
+            }
+            img {
+                max-width: 100%;
+                height: auto;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                margin: 10px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="download-container">
+            <h2>Download File</h2>
+            <p>File: ${filename}</p>
+            ${type.includes('image') ? `<img src="${dataURL}" alt="Preview">` : ''}
+            <br>
+            <a href="${dataURL}" download="${filename}" class="download-btn">
+                📥 Download File
+            </a>
+            <br><br>
+            <small>Jika download tidak dimulai otomatis, klik tombol download di atas</small>
+        </div>
+        <script>
+            // Auto download setelah 1 detik
+            setTimeout(function() {
+                const link = document.querySelector('a[download]');
+                if(link) link.click();
+            }, 1000);
+        <\/script>
+    </body>
+    </html>
+    `;
+
+    // Buka halaman download di tab baru
+    const newWindow = window.open('', '_blank');
+    newWindow.document.write(downloadPage);
+    newWindow.document.close();
 }
+
 
 // Fungsi untuk fullscreen view
 function showFullscreenBarcode(index = 0) {
@@ -1390,15 +1369,35 @@ document.getElementById('btnGenerateBarcode').addEventListener('click', () => {
 });
 
 // Event listeners untuk modal barcode
+// Update event listener untuk save PNG button
 document.getElementById('savePngBtn').addEventListener('click', () => {
-    showDownloadMessage();
-    downloadAsZip(generatedBarcodes);
+    if (generatedBarcodes.length === 1) {
+        // Jika hanya 1 barcode, download langsung
+        const barcodeData = generatedBarcodes[0];
+        const dataURL = barcodeData.canvas.toDataURL('image/png');
+        downloadViaBrowser(dataURL, barcodeData.filename, 'image/png');
+    } else {
+        // Jika multiple barcode, download satu per satu
+        generatedBarcodes.forEach((barcodeData, index) => {
+            setTimeout(() => {
+                const dataURL = barcodeData.canvas.toDataURL('image/png');
+                downloadViaBrowser(dataURL, barcodeData.filename, 'image/png');
+            }, index * 2000); // Delay 2 detik antar download
+        });
+    }
 });
 
+// Update event listener untuk save PDF button
 document.getElementById('savePdfBtn').addEventListener('click', () => {
-    showDownloadMessage();
     generatePDF(generatedBarcodes);
 });
+
+// Tambahkan fungsi untuk mendeteksi environment Android APK
+function isAndroidAPK() {
+    return typeof window.Android !== 'undefined' || 
+           navigator.userAgent.includes('wv') || // WebView
+           window.location.protocol === 'file:'; // Local file
+}
 
 document.getElementById('viewFullBtn').addEventListener('click', () => {
     showFullscreenBarcode(0);
@@ -1437,45 +1436,7 @@ document.getElementById('fullscreenBarcode').addEventListener('click', (e) => {
         document.getElementById('fullscreenBarcode').style.display = 'none';
     }
 });
-   
-const additionalCSS = `
-<style>
-.download-success-message {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #28a745;
-    color: white;
-    padding: 15px 25px;
-    border-radius: 10px;
-    font-weight: 600;
-    z-index: 10000;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-
-.android-instruction {
-    background: #17a2b8 !important;
-    color: white !important;
-    border: none !important;
-    position: fixed !important;
-    top: 20px !important;
-    left: 15px !important;
-    right: 15px !important;
-    z-index: 9999 !important;
-    padding: 12px !important;
-    border-radius: 8px !important;
-    text-align: center !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
-}
-</style>
-`;
-
-// Inject CSS ke head
-document.head.insertAdjacentHTML('beforeend', additionalCSS);
-
-
+    
     // Quagga.js Scanner functions
     let isScanning = false;
 
