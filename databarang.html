@@ -1151,36 +1151,44 @@ function showBarcodeModal(selectedProducts) {
 }
 
 // Fungsi untuk download PNG (Android compatible)
+// Ganti fungsi downloadAsZip dengan yang ini:
 function downloadAsZip(barcodes) {
     barcodes.forEach((barcodeData, index) => {
         setTimeout(() => {
             barcodeData.canvas.toBlob(function(blob) {
-                const file = new File([blob], barcodeData.filename, {type: 'image/png'});
-
-                if (navigator.share && navigator.canShare && navigator.canShare({files: [file]})) {
-                    // Gunakan Web Share API jika tersedia
-                    navigator.share({
-                        files: [file],
-                        title: 'Barcode Generated',
-                        text: `Barcode untuk ${barcodeData.product.namaBarang}`
-                    }).catch(err => console.log('Error sharing:', err));
-                } else if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-                    // Support IE/Edge lama
-                    window.navigator.msSaveOrOpenBlob(blob, barcodeData.filename);
-                } else {
-                    // Fallback: buka gambar di tab baru agar user bisa simpan manual
-                    const url = URL.createObjectURL(blob);
-                    window.open(url, '_blank');
-                    setTimeout(() => URL.revokeObjectURL(url), 10000);
-                }
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const base64data = reader.result;
+                    
+                    // Check if running in Android WebView (APK)
+                    const isAndroidWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
+                    
+                    if (isAndroidWebView && window.Android && window.Android.downloadFile) {
+                        // Use Android interface for APK
+                        window.Android.downloadFile(base64data, barcodeData.filename, 'image/png');
+                    } else if (navigator.share && navigator.canShare) {
+                        // Web Share API untuk browser mobile
+                        const file = new File([blob], barcodeData.filename, {type: 'image/png'});
+                        if (navigator.canShare({files: [file]})) {
+                            navigator.share({
+                                files: [file],
+                                title: 'Barcode Generated',
+                                text: `Barcode untuk ${barcodeData.product.namaBarang}`
+                            }).catch(err => console.log('Error sharing:', err));
+                        } else {
+                            fallbackDownload(base64data, barcodeData.filename);
+                        }
+                    } else {
+                        fallbackDownload(base64data, barcodeData.filename);
+                    }
+                };
+                reader.readAsDataURL(blob);
             }, 'image/png');
         }, index * 500);
     });
 }
 
-
-
-// Fungsi untuk generate PDF
+// Ganti fungsi generatePDF dengan yang ini:
 function generatePDF(barcodes) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -1201,24 +1209,95 @@ function generatePDF(barcodes) {
         currentY += barcodeHeight + 10;
     });
 
-    // Output PDF sebagai Blob dan share atau buka di tab baru
-    const pdfBlob = pdf.output('blob');
-
     const filename = `barcodes_${new Date().getTime()}.pdf`;
-    const file = new File([pdfBlob], filename, { type: 'application/pdf' });
-
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        navigator.share({
-            files: [file],
-            title: 'Barcode PDF',
-            text: 'PDF barcode generated'
-        }).catch(err => console.log('Error sharing:', err));
+    const pdfBase64 = pdf.output('datauristring');
+    
+    // Check if running in Android WebView (APK)
+    const isAndroidWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
+    
+    if (isAndroidWebView && window.Android && window.Android.downloadFile) {
+        // Use Android interface for APK
+        window.Android.downloadFile(pdfBase64, filename, 'application/pdf');
+    } else if (navigator.share && navigator.canShare) {
+        // Web Share API untuk browser mobile
+        const pdfBlob = pdf.output('blob');
+        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+        if (navigator.canShare({ files: [file] })) {
+            navigator.share({
+                files: [file],
+                title: 'Barcode PDF',
+                text: 'PDF barcode generated'
+            }).catch(err => console.log('Error sharing:', err));
+        } else {
+            fallbackDownload(pdfBase64, filename);
+        }
     } else {
-        const url = URL.createObjectURL(pdfBlob);
-        window.open(url, '_blank');
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        fallbackDownload(pdfBase64, filename);
     }
 }
+
+// Tambahkan fungsi fallback ini:
+function fallbackDownload(dataUri, filename) {
+    try {
+        // Method 1: Try creating download link (might work in some webviews)
+        const link = document.createElement('a');
+        link.href = dataUri;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (e) {
+        console.error('Download failed:', e);
+        // Method 2: Open in new window so user can save manually
+        const newWindow = window.open();
+        if (newWindow) {
+            newWindow.document.write(`
+                <html>
+                    <head><title>Download ${filename}</title></head>
+                    <body style="margin:0;text-align:center;">
+                        <h3>Tekan dan tahan gambar/file di bawah, lalu pilih "Simpan"</h3>
+                        <img src="${dataUri}" style="max-width:100%;height:auto;" />
+                        <br><br>
+                        <a href="${dataUri}" download="${filename}">Download ${filename}</a>
+                    </body>
+                </html>
+            `);
+        } else {
+            alert('Popup diblokir. Aktifkan popup untuk download atau gunakan fitur share.');
+        }
+    }
+}
+
+// Tambahkan pengecekan untuk Android WebView saat aplikasi dimuat:
+document.addEventListener('DOMContentLoaded', function() {
+    const isAndroidWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
+    
+    if (isAndroidWebView) {
+        console.log('Running in Android WebView (APK mode)');
+        
+        // Update button text untuk APK
+        const savePngBtn = document.getElementById('savePngBtn');
+        const savePdfBtn = document.getElementById('savePdfBtn');
+        
+        if (savePngBtn) {
+            savePngBtn.innerHTML = `
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Simpan PNG
+            `;
+        }
+        
+        if (savePdfBtn) {
+            savePdfBtn.innerHTML = `
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                </svg>
+                Simpan PDF
+            `;
+        }
+    }
+});
 
 
 
