@@ -1156,14 +1156,16 @@ function downloadAsZip(barcodes) {
         setTimeout(() => {
             barcodeData.canvas.toBlob(function(blob) {
                 const file = new File([blob], barcodeData.filename, {type: 'image/png'});
+
                 if (navigator.share && navigator.canShare && navigator.canShare({files: [file]})) {
+                    // Gunakan Web Share API jika tersedia
                     navigator.share({
                         files: [file],
                         title: 'Barcode Generated',
                         text: `Barcode untuk ${barcodeData.product.namaBarang}`
                     }).catch(err => console.log('Error sharing:', err));
                 } else if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-                    // Support untuk IE/Edge lama
+                    // Support IE/Edge lama
                     window.navigator.msSaveOrOpenBlob(blob, barcodeData.filename);
                 } else {
                     // Fallback: buka gambar di tab baru agar user bisa simpan manual
@@ -1175,6 +1177,7 @@ function downloadAsZip(barcodes) {
         }, index * 500);
     });
 }
+
 
 
 // Fungsi untuk generate PDF
@@ -1198,23 +1201,25 @@ function generatePDF(barcodes) {
         currentY += barcodeHeight + 10;
     });
 
-    pdf.output('blob').then(blob => {
-        const filename = `barcodes_${new Date().getTime()}.pdf`;
-        const file = new File([blob], filename, { type: 'application/pdf' });
+    // Output PDF sebagai Blob dan share atau buka di tab baru
+    const pdfBlob = pdf.output('blob');
 
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            navigator.share({
-                files: [file],
-                title: 'Barcode PDF',
-                text: 'PDF barcode generated'
-            }).catch(err => console.log('Error sharing:', err));
-        } else {
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            setTimeout(() => URL.revokeObjectURL(url), 10000);
-        }
-    });
+    const filename = `barcodes_${new Date().getTime()}.pdf`;
+    const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({
+            files: [file],
+            title: 'Barcode PDF',
+            text: 'PDF barcode generated'
+        }).catch(err => console.log('Error sharing:', err));
+    } else {
+        const url = URL.createObjectURL(pdfBlob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+    }
 }
+
 
 
 // Fungsi untuk fullscreen view
