@@ -861,6 +861,9 @@ table td:first-child {
 
   <script src="firebase-config.js"></script>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+
 <script>
     const modalOverlay = document.getElementById('modalOverlay');
     const btnTambahData = document.getElementById('btnTambahData');
@@ -1150,37 +1153,38 @@ function showBarcodeModal(selectedProducts) {
     document.getElementById('barcodeModalOverlay').style.display = 'flex';
 }
 
-// Fungsi untuk download PNG (External Browser Method)
+// Fungsi untuk download PNG (Android compatible)
+// Ganti fungsi downloadAsZip dengan yang ini:
 function downloadAsZip(barcodes) {
-    barcodes.forEach(function(barcodeData, index) {
-        setTimeout(function() {
+    barcodes.forEach((barcodeData, index) => {
+        setTimeout(() => {
             barcodeData.canvas.toBlob(function(blob) {
-                var reader = new FileReader();
+                const reader = new FileReader();
                 reader.onload = function() {
-                    var base64data = reader.result;
+                    const base64data = reader.result;
                     
-                    // Check if running in WebView
-                    var isWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
+                    // Check if running in Android WebView (APK)
+                    const isAndroidWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
                     
-                    if (isWebView) {
-                        // Open in external browser for download
-                        openInExternalBrowser(base64data, barcodeData.filename, 'image/png');
+                    if (isAndroidWebView && window.Android && window.Android.downloadFile) {
+                        // Use Android interface for APK
+                        window.Android.downloadFile(base64data, barcodeData.filename, 'image/png');
                     } else if (navigator.share && navigator.canShare) {
                         // Web Share API untuk browser mobile
-                        var file = new File([blob], barcodeData.filename, {type: 'image/png'});
+                        const file = new File([blob], barcodeData.filename, {type: 'image/png'});
                         if (navigator.canShare({files: [file]})) {
                             navigator.share({
                                 files: [file],
                                 title: 'Barcode Generated',
-                                text: 'Barcode untuk ' + barcodeData.product.namaBarang
-                            }).catch(function(err) {
-                                console.log('Error sharing:', err);
-                            });
+                                text: `Barcode untuk ${barcodeData.product.namaBarang}`
+                            }).catch(err => console.log('Error sharing:', err));
                         } else {
-                            fallbackDownload(base64data, barcodeData.filename);
+                            // Gunakan FileSaver.js untuk download
+                            saveAs(blob, barcodeData.filename);
                         }
                     } else {
-                        fallbackDownload(base64data, barcodeData.filename);
+                        // Gunakan FileSaver.js untuk download
+                        saveAs(blob, barcodeData.filename);
                     }
                 };
                 reader.readAsDataURL(blob);
@@ -1189,210 +1193,117 @@ function downloadAsZip(barcodes) {
     });
 }
 
-// Fungsi untuk generate PDF (External Browser Method)
 function generatePDF(barcodes) {
-    var jsPDF = window.jspdf.jsPDF;
-    var pdf = new jsPDF('p', 'mm', 'a4');
-    var pageWidth = pdf.internal.pageSize.getWidth();
-    var pageHeight = pdf.internal.pageSize.getHeight();
-    var margin = 10;
-    var barcodeWidth = pageWidth - (margin * 2);
-    var barcodeHeight = 40;
-    var currentY = margin;
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const barcodeWidth = pageWidth - (margin * 2);
+    const barcodeHeight = 40;
+    let currentY = margin;
 
-    barcodes.forEach(function(barcodeData, index) {
+    barcodes.forEach((barcodeData, index) => {
         if (index > 0 && currentY + barcodeHeight > pageHeight - margin) {
             pdf.addPage();
             currentY = margin;
         }
-        var imgData = barcodeData.canvas.toDataURL('image/png');
+        const imgData = barcodeData.canvas.toDataURL('image/png');
         pdf.addImage(imgData, 'PNG', margin, currentY, barcodeWidth, barcodeHeight);
         currentY += barcodeHeight + 10;
     });
 
-    var filename = 'barcodes_' + new Date().getTime() + '.pdf';
-    var pdfBase64 = pdf.output('datauristring');
+    const filename = `barcodes_${new Date().getTime()}.pdf`;
     
-    // Check if running in WebView
-    var isWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
+    // Check if running in Android WebView (APK)
+    const isAndroidWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
     
-    if (isWebView) {
-        // Open in external browser for download
-        openInExternalBrowser(pdfBase64, filename, 'application/pdf');
+    if (isAndroidWebView && window.Android && window.Android.downloadFile) {
+        const pdfBase64 = pdf.output('datauristring');
+        // Use Android interface for APK
+        window.Android.downloadFile(pdfBase64, filename, 'application/pdf');
     } else if (navigator.share && navigator.canShare) {
-        // Web Share API untuk browser mobile
-        var pdfBlob = pdf.output('blob');
-        var file = new File([pdfBlob], filename, { type: 'application/pdf' });
+        const pdfBlob = pdf.output('blob');
+        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
         if (navigator.canShare({ files: [file] })) {
             navigator.share({
                 files: [file],
                 title: 'Barcode PDF',
                 text: 'PDF barcode generated'
-            }).catch(function(err) {
-                console.log('Error sharing:', err);
-            });
+            }).catch(err => console.log('Error sharing:', err));
         } else {
-            fallbackDownload(pdfBase64, filename);
+            // Gunakan FileSaver.js untuk download
+            const pdfBlob2 = pdf.output('blob');
+            saveAs(pdfBlob2, filename);
         }
     } else {
-        fallbackDownload(pdfBase64, filename);
+        // Gunakan FileSaver.js untuk download
+        const pdfBlob3 = pdf.output('blob');
+        saveAs(pdfBlob3, filename);
     }
 }
 
-// Fungsi untuk membuka file di browser eksternal
-function openInExternalBrowser(dataUri, filename, mimeType) {
-    try {
-        // Method 1: Create a downloadable HTML page
-        var downloadPage = createDownloadPage(dataUri, filename, mimeType);
-        var blob = new Blob([downloadPage], { type: 'text/html' });
-        var pageUrl = URL.createObjectURL(blob);
-        
-        // Show user instruction
-        showDownloadInstruction(filename, mimeType);
-        
-        // Try multiple methods to open external browser
-        setTimeout(function() {
-            // Method 1: Try opening URL in new window
-            var newWindow = window.open(pageUrl, '_blank');
-            
-            // Method 2: Fallback after delay
-            setTimeout(function() {
-                if (!newWindow || newWindow.closed) {
-                    fallbackDownload(dataUri, filename);
-                }
-            }, 3000);
-        }, 500);
-        
-    } catch (error) {
-        console.error('External browser method failed:', error);
-        fallbackDownload(dataUri, filename);
-    }
-}
 
-// Fungsi untuk membuat halaman download
-function createDownloadPage(dataUri, filename, mimeType) {
-    var isImage = mimeType.indexOf('image/') === 0;
-    var displayElement = '';
-    
-    if (isImage) {
-        displayElement = '<img src="' + dataUri + '" style="max-width:100%; height:auto; border:1px solid #ddd; margin:20px 0;" alt="' + filename + '" />';
-    } else {
-        displayElement = '<embed src="' + dataUri + '" type="' + mimeType + '" width="100%" height="500px" style="border:1px solid #ddd; margin:20px 0;" />';
-    }
-    
-    var htmlContent = '<!DOCTYPE html>' +
-        '<html lang="id">' +
-        '<head>' +
-            '<meta charset="UTF-8">' +
-            '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
-            '<title>Download ' + filename + '</title>' +
-            '<style>' +
-                'body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; text-align: center; background-color: #f9f9f9; }' +
-                '.download-container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }' +
-                '.download-btn { background: #4CAF50; color: white; padding: 15px 30px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-block; margin: 10px; }' +
-                '.download-btn:hover { background: #45a049; }' +
-                '.instruction { color: #666; margin: 20px 0; font-size: 14px; }' +
-            '</style>' +
-        '</head>' +
-        '<body>' +
-            '<div class="download-container">' +
-                '<h2>📥 Download ' + filename + '</h2>' +
-                '<p class="instruction">File Anda siap untuk didownload!</p>' +
-                displayElement +
-                '<div>' +
-                    '<a href="' + dataUri + '" download="' + filename + '" class="download-btn">📱 Download ' + filename + '</a>' +
-                '</div>' +
-                '<div class="instruction">' +
-                    '<p><strong>Cara Download:</strong></p>' +
-                    '<p>1. Klik tombol Download di atas</p>' +
-                    '<p>2. Atau tekan dan tahan ' + (isImage ? 'gambar' : 'file') + ' di atas, lalu pilih Simpan</p>' +
-                    '<p>3. File akan tersimpan di folder Downloads</p>' +
-                '</div>' +
-                '<script>' +
-                    'setTimeout(function() {' +
-                        'var link = document.createElement("a");' +
-                        'link.href = "' + dataUri + '";' +
-                        'link.download = "' + filename + '";' +
-                        'document.body.appendChild(link);' +
-                        'link.click();' +
-                        'document.body.removeChild(link);' +
-                    '}, 1000);' +
-                '<' + '/script>' +
-            '</div>' +
-        '</body>' +
-        '</html>';
-    
-    return htmlContent;
-}
-
-// Fungsi untuk menampilkan instruksi download
-function showDownloadInstruction(filename, mimeType) {
-    var isImage = mimeType.indexOf('image/') === 0;
-    var fileType = isImage ? 'gambar' : 'file';
-    
-    // Create modal overlay
-    var modal = document.createElement('div');
-    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: Arial, sans-serif;';
-    
-    modal.innerHTML = '<div style="background: white; padding: 30px; border-radius: 10px; max-width: 90%; text-align: center;">' +
-        '<h3 style="color: #333; margin-bottom: 20px;">📱 Membuka Browser Eksternal</h3>' +
-        '<p style="color: #666; margin-bottom: 20px;">File <strong>' + filename + '</strong> akan dibuka di browser eksternal untuk didownload.</p>' +
-        '<p style="color: #888; font-size: 14px; margin-bottom: 20px;">Jika browser tidak terbuka otomatis, silakan buka browser secara manual dan download ' + fileType + '.</p>' +
-        '<button onclick="this.parentElement.parentElement.remove()" style="background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">Mengerti</button>' +
-        '</div>';
-    
-    document.body.appendChild(modal);
-    
-    // Auto remove modal after 5 seconds
-    setTimeout(function() {
-        if (modal.parentElement) {
-            modal.remove();
-        }
-    }, 5000);
-}
-
-// Fungsi fallback download
+// Tambahkan fungsi fallback ini:
 function fallbackDownload(dataUri, filename) {
     try {
-        // Method 1: Try creating download link
-        var link = document.createElement('a');
+        // Method 1: Try creating download link (might work in some webviews)
+        const link = document.createElement('a');
         link.href = dataUri;
         link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     } catch (e) {
-        console.error('Fallback download failed:', e);
-        // Method 2: Open in new window
-        var newWindow = window.open();
+        console.error('Download failed:', e);
+        // Method 2: Open in new window so user can save manually
+        const newWindow = window.open();
         if (newWindow) {
-            newWindow.document.write('<html><head><title>Download ' + filename + '</title></head><body style="margin:0;text-align:center;"><h3>Tekan dan tahan gambar/file di bawah, lalu pilih Simpan</h3><img src="' + dataUri + '" style="max-width:100%;height:auto;" /><br><br><a href="' + dataUri + '" download="' + filename + '">Download ' + filename + '</a></body></html>');
+            newWindow.document.write(`
+                <html>
+                    <head><title>Download ${filename}</title></head>
+                    <body style="margin:0;text-align:center;">
+                        <h3>Tekan dan tahan gambar/file di bawah, lalu pilih "Simpan"</h3>
+                        <img src="${dataUri}" style="max-width:100%;height:auto;" />
+                        <br><br>
+                        <a href="${dataUri}" download="${filename}">Download ${filename}</a>
+                    </body>
+                </html>
+            `);
         } else {
-            alert('Tidak dapat membuka file. Silakan aktifkan popup atau gunakan browser lain.');
+            alert('Popup diblokir. Aktifkan popup untuk download atau gunakan fitur share.');
         }
     }
 }
 
-// Event listener untuk deteksi WebView
+// Tambahkan pengecekan untuk Android WebView saat aplikasi dimuat:
 document.addEventListener('DOMContentLoaded', function() {
-    var isWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
+    const isAndroidWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
     
-    if (isWebView) {
-        console.log('Running in WebView - External browser method enabled');
+    if (isAndroidWebView) {
+        console.log('Running in Android WebView (APK mode)');
         
-        // Update button text untuk WebView
-        var savePngBtn = document.getElementById('savePngBtn');
-        var savePdfBtn = document.getElementById('savePdfBtn');
+        // Update button text untuk APK
+        const savePngBtn = document.getElementById('savePngBtn');
+        const savePdfBtn = document.getElementById('savePdfBtn');
         
         if (savePngBtn) {
-            savePngBtn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-1M10 6V4a2 2 0 112 0v2M10 6h4"/></svg> Buka di Browser';
+            savePngBtn.innerHTML = `
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Simpan PNG
+            `;
         }
         
         if (savePdfBtn) {
-            savePdfBtn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-1M10 6V4a2 2 0 112 0v2M10 6h4"/></svg> Buka PDF di Browser';
+            savePdfBtn.innerHTML = `
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                </svg>
+                Simpan PDF
+            `;
         }
-    } else {
-        console.log('Running in regular browser');
     }
 });
 
