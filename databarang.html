@@ -471,6 +471,59 @@ table td:first-child {
       overflow: hidden;
       border-radius: 8px;
     }
+
+    #scanner-container {
+    display: none;
+    position: relative;
+    margin-top: 10px;
+    border: 2px solid #4a69ff;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 360px;
+    height: 300px;
+    background: black;
+    z-index: 4000;
+    overflow: hidden;
+}
+
+#scanner-container #closeScannerBtn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 10;
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 18px;
+    text-align: center;
+    padding: 0;
+    font-weight: bold;
+}
+
+#interactive.viewport {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+#interactive canvas, #interactive video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+
+
+.drawingBuffer {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
   </style>
   <!-- Load Quagga.js from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
@@ -783,157 +836,295 @@ table td:first-child {
 
     // Generate barcode button alert
     btnGenerateBarcode.addEventListener('click', () => {
-      const selectedCheckboxes = [...document.querySelectorAll('.select-row:checked')];
-      if (selectedCheckboxes.length === 0) {
-          alert('Pilih minimal satu item untuk generate barcode.');
-          return;
-      }
+  const selectedCheckboxes = [...document.querySelectorAll('.select-row:checked')];
+  if (selectedCheckboxes.length === 0) {
+      alert('Pilih minimal satu item untuk generate barcode.');
+      return;
+  }
 
-      // Jika ada item yang dipilih, lanjutkan dengan proses generate barcode
-      const canvas = document.createElement('canvas'); // Buat elemen canvas baru
+  // Deteksi apakah sedang berjalan di Android WebView/APK
+  const isAndroidApp = /Android/i.test(navigator.userAgent) && 
+                       (window.location.protocol === 'file:' || 
+                        window.location.href.includes('android_asset'));
+
+  selectedCheckboxes.forEach((cb, index) => {
+      const tr = cb.closest('tr');
+      const barcodeValue = tr.dataset.barcode;
+      const namaBarang = tr.dataset.nama;
+      const brand = tr.dataset.brand;
+      const hargaNumber = Number(tr.dataset.harga);
+      const hargaFormatted = 'Rp ' + hargaNumber.toLocaleString('id-ID');
+
+      // Buat canvas untuk barcode
+      const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
+      const width = 350;
+      const height = 140;
+      canvas.width = width;
+      canvas.height = height;
 
-      selectedCheckboxes.forEach((cb) => {
-          const tr = cb.closest('tr');
-          const barcodeValue = tr.dataset.barcode;
-          const namaBarang = tr.dataset.nama;
-          const brand = tr.dataset.brand;
-          const hargaNumber = Number(tr.dataset.harga);
-          const hargaFormatted = 'Rp ' + hargaNumber.toLocaleString('id-ID');
+      // Background putih
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, width, height);
 
-          const width = 350;
-          const height = 140;
-          canvas.width = width;
-          canvas.height = height;
+      // Text styling
+      ctx.fillStyle = '#004a99';
+      ctx.textAlign = 'center';
 
-          ctx.clearRect(0, 0, width, height);
-          ctx.fillStyle = 'white';
-          ctx.fillRect(0, 0, width, height);
+      // Brand dan nama barang
+      ctx.font = 'bold 16px Arial, sans-serif';
+      const brandNama = `${brand} - ${namaBarang}`;
+      ctx.fillText(brandNama, width / 2, 30);
 
-          ctx.fillStyle = '#004a99';
-          ctx.textAlign = 'center';
+      // Harga
+      ctx.font = 'bold 14px Arial, sans-serif';
+      ctx.fillText(hargaFormatted, width / 2, 55);
 
-          ctx.font = 'bold 16px Poppins, sans-serif';
-          const brandNama = `${brand} - ${namaBarang}`;
-          ctx.fillText(brandNama, width / 2, 30);
+      // Generate barcode
+      const barcodeCanvas = document.createElement('canvas');
+      JsBarcode(barcodeCanvas, barcodeValue, {
+          format: 'CODE128',
+          displayValue: true,
+          fontSize: 14,
+          height: 50,
+          width: 2,
+          margin: 0,
+          textMargin: 5,
+          textPosition: 'bottom',
+          background: 'transparent'
+      });
 
-          ctx.font = 'bold 14px Poppins, sans-serif';
-          ctx.fillText(hargaFormatted, width / 2, 55);
+      // Draw barcode ke canvas utama
+      const barcodeHeight = 70;
+      ctx.drawImage(barcodeCanvas, (width - barcodeCanvas.width) / 2, height - barcodeHeight);
 
-          const barcodeCanvas = document.createElement('canvas');
-          JsBarcode(barcodeCanvas, barcodeValue, {
-              format: 'CODE128',
-              displayValue: true,
-              fontSize: 14,
-              height: 50,
-              width: 2,
-              margin: 0,
-              textMargin: 5,
-              textPosition: 'bottom',
-              background: 'transparent'
-          });
-
-          const barcodeHeight = 70;
-          ctx.drawImage(barcodeCanvas, (width - barcodeCanvas.width) / 2, height - barcodeHeight);
-
-          const dataUrl = canvas.toDataURL('image/png');
-          const link = document.createElement('a');
-          link.href = dataUrl;
+      // Konversi ke blob untuk Android compatibility
+      canvas.toBlob(function(blob) {
           const safeBrand = brand.replace(/\s+/g, '_');
           const safeName = namaBarang.replace(/\s+/g, '_');
-          link.download = `barcode_${safeBrand}_${safeName}_${barcodeValue}.png`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-      });
-    });
+          const fileName = `barcode_${safeBrand}_${safeName}_${barcodeValue}.png`;
+          
+          if (isAndroidApp) {
+              // Untuk Android APK - gunakan navigator.share atau fallback
+              if (navigator.share) {
+                  navigator.share({
+                      files: [new File([blob], fileName, { type: 'image/png' })],
+                      title: 'Barcode Generated',
+                      text: `Barcode untuk ${brandNama}`
+                  }).catch(err => {
+                      console.log('Error sharing:', err);
+                      // Fallback: buka dalam tab baru
+                      const url = URL.createObjectURL(blob);
+                      window.open(url, '_blank');
+                  });
+              } else {
+                  // Fallback untuk Android yang tidak support navigator.share
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = fileName;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+              }
+          } else {
+              // Untuk browser desktop/web
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = fileName;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+          }
+      }, 'image/png');
+  });
+});
 
     
     // Quagga.js Scanner functions
-    function startQuaggaScanner() {
-      if (isScanning) return;
+    let isScanning = false;
 
-      scannerContainer.style.display = 'block';
-      barcodeInput.value = ''; // kosongkan dulu
+function startQuaggaScanner() {
+    if (isScanning) return;
 
-      Quagga.init({
+    scannerContainer.style.display = 'block';
+    isScanning = true;
+
+    // Konfigurasi yang lebih kompatibel untuk Android
+    const config = {
         inputStream: {
-          type: "LiveStream",
-          constraints: {
-            facingMode: "environment"
-          },
-          target: document.querySelector('#interactive')
+            type: "LiveStream",
+            constraints: {
+                width: { min: 320, ideal: 640, max: 1920 },
+                height: { min: 240, ideal: 480, max: 1080 },
+                facingMode: "environment", // Kamera belakang
+                aspectRatio: { min: 1, max: 2 }
+            },
+            target: document.querySelector('#interactive'),
+            singleChannel: false
         },
+        locator: {
+            patchSize: "medium",
+            halfSample: true
+        },
+        numOfWorkers: 2,
         decoder: {
-          readers: [
-            "code_128_reader",
-            "ean_reader",
-            "ean_8_reader",
-            "code_39_reader",
-            "code_39_vin_reader",
-            "codabar_reader",
-            "upc_reader",
-            "upc_e_reader",
-            "i2of5_reader",
-            "2of5_reader",
-            "code_93_reader"
-          ]
+            readers: [
+                "code_128_reader",
+                "ean_reader",
+                "ean_8_reader",
+                "code_39_reader",
+                "upc_reader",
+                "upc_e_reader"
+            ],
+            debug: {
+                drawBoundingBox: true,
+                showFrequency: true,
+                drawScanline: true,
+                showPattern: true
+            }
         },
         locate: true
-      }, function(err) {
-        if (err) {
-          console.error(err);
-          alert('Gagal menginisialisasi scanner: ' + err);
-          stopQuaggaScanner();
-          return;
-        }
-        Quagga.start();
-        isScanning = true;
-      });
+    };
 
-      Quagga.onDetected(onBarcodeDetected);
-    }
+    Quagga.init(config, function(err) {
+        if (err) {
+            console.error('Quagga initialization error:', err);
+            alert('Tidak dapat mengakses kamera. Pastikan izin kamera telah diberikan.');
+            stopQuaggaScanner();
+            return;
+        }
+        
+        console.log('Quagga initialized successfully');
+        Quagga.start();
+    });
+
+    // Event listener untuk deteksi barcode
+    Quagga.onDetected(onBarcodeDetected);
+    
+    // Event listener untuk error
+    Quagga.onProcessed(function(result) {
+        var drawingCtx = Quagga.canvas.ctx.overlay,
+            drawingCanvas = Quagga.canvas.dom.overlay;
+
+        if (result) {
+            if (result.boxes) {
+                drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+                result.boxes.filter(function (box) {
+                    return box !== result.box;
+                }).forEach(function (box) {
+                    Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
+                });
+            }
+
+            if (result.box) {
+                Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
+            }
+
+            if (result.codeResult && result.codeResult.code) {
+                Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, {color: 'red', lineWidth: 3});
+            }
+        }
+    });
+}
 
     function stopQuaggaScanner() {
-      if (!isScanning) return;
+    if (!isScanning) return;
 
-      Quagga.offDetected(onBarcodeDetected);
-      Quagga.stop();
-      isScanning = false;
-      scannerContainer.style.display = 'none';
+    try {
+        Quagga.offDetected(onBarcodeDetected);
+        Quagga.offProcessed();
+        Quagga.stop();
+        
+        // Clear canvas
+        const canvas = document.querySelector('#interactive canvas');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        
+    } catch (error) {
+        console.error('Error stopping Quagga:', error);
     }
+    
+    isScanning = false;
+    scannerContainer.style.display = 'none';
+}
+
 
     function onBarcodeDetected(result) {
-      if (result && result.codeResult && result.codeResult.code) {
+    if (result && result.codeResult && result.codeResult.code) {
         const code = result.codeResult.code;
-        barcodeInput.value = code; // Isi field input barcode dengan hasil scan
-        stopQuaggaScanner(); // Hentikan pemindaian setelah barcode terdeteksi
-      }
+        console.log('Barcode detected:', code);
+        
+        // Isi field input barcode
+        barcodeInput.value = code;
+        
+        // Berikan feedback kepada user
+        if ('navigator' in window && 'vibrate' in navigator) {
+            navigator.vibrate(200); // Vibrate untuk feedback
+        }
+        
+        // Hentikan scanner
+        stopQuaggaScanner();
+        
+        // Optional: tampilkan alert sukses
+        setTimeout(() => {
+            alert(`Barcode berhasil dipindai: ${code}`);
+        }, 100);
     }
+}
 
     // Event listener untuk tombol scan barcode
-    document.getElementById('scanBarcodeBtn').addEventListener('click', () => {
-      if (!isScanning) {
-        startQuaggaScanner();
-      }
-    });
+    document.getElementById('scanBarcodeBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    // Cek apakah browser mendukung getUserMedia
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Browser tidak mendukung akses kamera. Silakan gunakan browser yang lebih baru.');
+        return;
+    }
+    
+    // Request permission untuk kamera terlebih dahulu
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(function(stream) {
+            // Stop stream immediately, kita hanya perlu test permission
+            stream.getTracks().forEach(track => track.stop());
+            // Mulai scanner
+            startQuaggaScanner();
+        })
+        .catch(function(err) {
+            console.error('Camera permission error:', err);
+            alert('Tidak dapat mengakses kamera. Pastikan Anda telah memberikan izin akses kamera.');
+        });
+});
 
-    closeScannerBtn.addEventListener('click', () => {
-      if (isScanning) {
+    closeScannerBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    stopQuaggaScanner();
+});
+
+// Pastikan scanner berhenti saat modal ditutup
+const originalModalClose = modalOverlay.addEventListener;
+modalOverlay.addEventListener('click', function(e) {
+    if (e.target === modalOverlay) {
         stopQuaggaScanner();
-      }
-    });
+        modalOverlay.style.display = 'none';
+        addDataForm.reset();
+    }
+});
 
-    // Pastikan scanner berhenti jika modal ditutup
-    modalOverlay.addEventListener('click', e => {
-      if (e.target === modalOverlay) {
-        stopQuaggaScanner();
-      }
-    });
-
-    cancelBtn.addEventListener('click', () => {
-      stopQuaggaScanner();
-    });
+// Pastikan scanner berhenti saat tombol cancel diklik
+const originalCancelClick = cancelBtn.addEventListener;
+cancelBtn.addEventListener('click', function() {
+    stopQuaggaScanner();
+    modalOverlay.style.display = 'none';
+    addDataForm.reset();
+});
 
     // Load data saat halaman dibuka
     fetchProducts();
