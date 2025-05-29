@@ -861,9 +861,6 @@ table td:first-child {
 
   <script src="firebase-config.js"></script>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-
-
 <script>
     const modalOverlay = document.getElementById('modalOverlay');
     const btnTambahData = document.getElementById('btnTambahData');
@@ -1153,47 +1150,39 @@ function showBarcodeModal(selectedProducts) {
     document.getElementById('barcodeModalOverlay').style.display = 'flex';
 }
 
-// Fungsi untuk download PNG (Android compatible)
-// Ganti fungsi downloadAsZip dengan yang ini:
-function downloadAsZip(barcodes) {
+// Fungsi download PNG sebagai link
+function downloadAsLinks(barcodes) {
+    const container = document.getElementById('barcodePreviewContainer');
+    const existingLinks = container.querySelectorAll('.download-link');
+    existingLinks.forEach(link => link.remove());
+
     barcodes.forEach((barcodeData, index) => {
-        setTimeout(() => {
-            barcodeData.canvas.toBlob(function(blob) {
-                const reader = new FileReader();
-                reader.onload = function() {
-                    const base64data = reader.result;
-                    
-                    // Check if running in Android WebView (APK)
-                    const isAndroidWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
-                    
-                    if (isAndroidWebView && window.Android && window.Android.downloadFile) {
-                        // Use Android interface for APK
-                        window.Android.downloadFile(base64data, barcodeData.filename, 'image/png');
-                    } else if (navigator.share && navigator.canShare) {
-                        // Web Share API untuk browser mobile
-                        const file = new File([blob], barcodeData.filename, {type: 'image/png'});
-                        if (navigator.canShare({files: [file]})) {
-                            navigator.share({
-                                files: [file],
-                                title: 'Barcode Generated',
-                                text: `Barcode untuk ${barcodeData.product.namaBarang}`
-                            }).catch(err => console.log('Error sharing:', err));
-                        } else {
-                            // Gunakan FileSaver.js untuk download
-                            saveAs(blob, barcodeData.filename);
-                        }
-                    } else {
-                        // Gunakan FileSaver.js untuk download
-                        saveAs(blob, barcodeData.filename);
-                    }
-                };
-                reader.readAsDataURL(blob);
-            }, 'image/png');
-        }, index * 500);
+        barcodeData.canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = barcodeData.filename;
+            link.textContent = `Download ${barcodeData.filename}`;
+            link.className = 'download-link';
+            link.style.display = 'block';
+            link.style.marginTop = '5px';
+            link.style.color = '#2a3eb1';
+            link.style.fontWeight = '600';
+            link.style.textDecoration = 'underline';
+            link.target = '_blank';
+
+            const barcodeItems = document.querySelectorAll('.barcode-item');
+            if (barcodeItems[index]) {
+                barcodeItems[index].appendChild(link);
+            }
+
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
+        }, 'image/png');
     });
 }
 
-function generatePDF(barcodes) {
+// Fungsi generate PDF dan buat link download
+function generatePDFLink(barcodes) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -1214,34 +1203,39 @@ function generatePDF(barcodes) {
     });
 
     const filename = `barcodes_${new Date().getTime()}.pdf`;
-    
-    // Check if running in Android WebView (APK)
-    const isAndroidWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
-    
-    if (isAndroidWebView && window.Android && window.Android.downloadFile) {
-        const pdfBase64 = pdf.output('datauristring');
-        // Use Android interface for APK
-        window.Android.downloadFile(pdfBase64, filename, 'application/pdf');
-    } else if (navigator.share && navigator.canShare) {
-        const pdfBlob = pdf.output('blob');
-        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
-        if (navigator.canShare({ files: [file] })) {
-            navigator.share({
-                files: [file],
-                title: 'Barcode PDF',
-                text: 'PDF barcode generated'
-            }).catch(err => console.log('Error sharing:', err));
-        } else {
-            // Gunakan FileSaver.js untuk download
-            const pdfBlob2 = pdf.output('blob');
-            saveAs(pdfBlob2, filename);
-        }
-    } else {
-        // Gunakan FileSaver.js untuk download
-        const pdfBlob3 = pdf.output('blob');
-        saveAs(pdfBlob3, filename);
-    }
+    const pdfBlob = pdf.output('blob');
+
+    const url = URL.createObjectURL(pdfBlob);
+    const container = document.getElementById('barcodePreviewContainer');
+
+    const oldPdfLink = document.getElementById('pdfDownloadLink');
+    if (oldPdfLink) oldPdfLink.remove();
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.textContent = `Download ${filename}`;
+    link.id = 'pdfDownloadLink';
+    link.style.display = 'block';
+    link.style.marginTop = '15px';
+    link.style.color = '#dc3545';
+    link.style.fontWeight = '700';
+    link.style.textDecoration = 'underline';
+    link.target = '_blank';
+
+    container.appendChild(link);
+
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
+
+// Update tombol save PNG dan PDF
+document.getElementById('savePngBtn').addEventListener('click', () => {
+    downloadAsLinks(generatedBarcodes);
+});
+
+document.getElementById('savePdfBtn').addEventListener('click', () => {
+    generatePDFLink(generatedBarcodes);
+});
 
 
 // Tambahkan fungsi fallback ini:
