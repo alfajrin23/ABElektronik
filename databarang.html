@@ -524,6 +524,184 @@ table td:first-child {
     top: 0;
     left: 0;
 }
+
+/* Modal Barcode Viewer */
+.barcode-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 4000;
+}
+
+.barcode-modal {
+    background: white;
+    border-radius: 15px;
+    width: 95%;
+    max-width: 500px;
+    max-height: 90vh;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: relative;
+    overflow-y: auto;
+}
+
+.barcode-modal h2 {
+    margin: 0 0 20px 0;
+    color: #2a3eb1;
+    font-size: 1.5rem;
+    text-align: center;
+    border-bottom: 2px solid #4a69ff;
+    padding-bottom: 10px;
+}
+
+.barcode-preview-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.barcode-item {
+    border: 2px solid #e0e6ff;
+    border-radius: 10px;
+    padding: 15px;
+    background: #f8f9ff;
+    text-align: center;
+}
+
+.barcode-item canvas {
+    max-width: 100%;
+    height: auto;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.barcode-item-info {
+    color: #2a3eb1;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.barcode-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.barcode-btn {
+    padding: 12px 20px;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    min-width: 130px;
+    justify-content: center;
+}
+
+.barcode-btn.save-png {
+    background: #28a745;
+    color: white;
+}
+
+.barcode-btn.save-png:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+.barcode-btn.save-pdf {
+    background: #dc3545;
+    color: white;
+}
+
+.barcode-btn.save-pdf:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+.barcode-btn.view-full {
+    background: #17a2b8;
+    color: white;
+}
+
+.barcode-btn.view-full:hover {
+    background: #138496;
+    transform: translateY(-2px);
+}
+
+.barcode-btn.close-modal {
+    background: #6c757d;
+    color: white;
+}
+
+.barcode-btn.close-modal:hover {
+    background: #545b62;
+    transform: translateY(-2px);
+}
+
+/* Fullscreen barcode viewer */
+.fullscreen-barcode {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.95);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.fullscreen-barcode canvas {
+    max-width: 90vw;
+    max-height: 70vh;
+    border: 2px solid white;
+    border-radius: 10px;
+}
+
+.fullscreen-nav {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.fullscreen-nav button {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid white;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.fullscreen-nav button:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.fullscreen-counter {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.barcode-btn svg {
+    width: 18px;
+    height: 18px;
+}
   </style>
   <!-- Load Quagga.js from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
@@ -630,6 +808,57 @@ table td:first-child {
     </div>
   </div>
 
+  <!-- 2. Tambahkan HTML untuk modal barcode viewer -->
+  <div class="barcode-modal-overlay" id="barcodeModalOverlay">
+      <div class="barcode-modal">
+          <h2>Preview Barcode</h2>
+          <div class="barcode-preview-container" id="barcodePreviewContainer">
+              <!-- Barcode previews akan ditampilkan di sini -->
+          </div>
+          <div class="barcode-actions">
+              <button class="barcode-btn save-png" id="savePngBtn">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  </svg>
+                  Save PNG
+              </button>
+              <button class="barcode-btn save-pdf" id="savePdfBtn">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                  </svg>
+                  Save PDF
+              </button>
+              <button class="barcode-btn view-full" id="viewFullBtn">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  Lihat
+              </button>
+              <button class="barcode-btn close-modal" id="closeBarcodeModal">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                  Tutup
+              </button>
+          </div>
+      </div>
+  </div>
+
+  <!-- 3. Fullscreen barcode viewer -->
+  <div class="fullscreen-barcode" id="fullscreenBarcode">
+      <canvas id="fullscreenCanvas"></canvas>
+      <div class="fullscreen-nav">
+          <button id="prevBarcode">❮ Prev</button>
+          <span class="fullscreen-counter" id="fullscreenCounter">1 / 1</span>
+          <button id="nextBarcode">Next ❯</button>
+          <button id="closeFullscreen">✕ Close</button>
+      </div>
+  </div>
+
+  <!-- 4. Tambahkan library jsPDF untuk PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <script src="firebase-config.js"></script>
 
 <script>
@@ -648,6 +877,8 @@ table td:first-child {
     let editMode = false;
     let editProductId = null;
     let products = [];
+    let generatedBarcodes = [];
+    let currentFullscreenIndex = 0;
 
     // Fungsi untuk memformat angka dengan titik sebagai pemisah ribuan
     function formatRupiah(angka) {
@@ -834,116 +1065,238 @@ table td:first-child {
       renderTable(filtered);
     });
 
-    // Generate barcode button alert
-    btnGenerateBarcode.addEventListener('click', () => {
-  const selectedCheckboxes = [...document.querySelectorAll('.select-row:checked')];
-  if (selectedCheckboxes.length === 0) {
-      alert('Pilih minimal satu item untuk generate barcode.');
-      return;
-  }
+// Fungsi untuk membuat canvas barcode
+function createBarcodeCanvas(product) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const width = 350;
+    const height = 140;
+    canvas.width = width;
+    canvas.height = height;
 
-  // Deteksi apakah sedang berjalan di Android WebView/APK
-  const isAndroidApp = /Android/i.test(navigator.userAgent) && 
-                       (window.location.protocol === 'file:' || 
-                        window.location.href.includes('android_asset'));
+    // Background putih
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, width, height);
 
-  selectedCheckboxes.forEach((cb, index) => {
-      const tr = cb.closest('tr');
-      const barcodeValue = tr.dataset.barcode;
-      const namaBarang = tr.dataset.nama;
-      const brand = tr.dataset.brand;
-      const hargaNumber = Number(tr.dataset.harga);
-      const hargaFormatted = 'Rp ' + hargaNumber.toLocaleString('id-ID');
+    // Text styling
+    ctx.fillStyle = '#004a99';
+    ctx.textAlign = 'center';
 
-      // Buat canvas untuk barcode
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const width = 350;
-      const height = 140;
-      canvas.width = width;
-      canvas.height = height;
+    // Brand dan nama barang
+    ctx.font = 'bold 16px Arial, sans-serif';
+    const brandNama = `${product.brand} - ${product.namaBarang}`;
+    ctx.fillText(brandNama, width / 2, 30);
 
-      // Background putih
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, width, height);
+    // Harga
+    ctx.font = 'bold 14px Arial, sans-serif';
+    const hargaFormatted = 'Rp ' + Number(product.harga).toLocaleString('id-ID');
+    ctx.fillText(hargaFormatted, width / 2, 55);
 
-      // Text styling
-      ctx.fillStyle = '#004a99';
-      ctx.textAlign = 'center';
+    // Generate barcode
+    const barcodeCanvas = document.createElement('canvas');
+    JsBarcode(barcodeCanvas, product.barcode, {
+        format: 'CODE128',
+        displayValue: true,
+        fontSize: 14,
+        height: 50,
+        width: 2,
+        margin: 0,
+        textMargin: 5,
+        textPosition: 'bottom',
+        background: 'transparent'
+    });
 
-      // Brand dan nama barang
-      ctx.font = 'bold 16px Arial, sans-serif';
-      const brandNama = `${brand} - ${namaBarang}`;
-      ctx.fillText(brandNama, width / 2, 30);
+    // Draw barcode ke canvas utama
+    const barcodeHeight = 70;
+    ctx.drawImage(barcodeCanvas, (width - barcodeCanvas.width) / 2, height - barcodeHeight);
 
-      // Harga
-      ctx.font = 'bold 14px Arial, sans-serif';
-      ctx.fillText(hargaFormatted, width / 2, 55);
+    return canvas;
+}
 
-      // Generate barcode
-      const barcodeCanvas = document.createElement('canvas');
-      JsBarcode(barcodeCanvas, barcodeValue, {
-          format: 'CODE128',
-          displayValue: true,
-          fontSize: 14,
-          height: 50,
-          width: 2,
-          margin: 0,
-          textMargin: 5,
-          textPosition: 'bottom',
-          background: 'transparent'
-      });
+// Fungsi untuk menampilkan modal barcode
+function showBarcodeModal(selectedProducts) {
+    generatedBarcodes = [];
+    const container = document.getElementById('barcodePreviewContainer');
+    container.innerHTML = '';
 
-      // Draw barcode ke canvas utama
-      const barcodeHeight = 70;
-      ctx.drawImage(barcodeCanvas, (width - barcodeCanvas.width) / 2, height - barcodeHeight);
+    selectedProducts.forEach((product, index) => {
+        const canvas = createBarcodeCanvas(product);
+        generatedBarcodes.push({
+            canvas: canvas,
+            product: product,
+            filename: `barcode_${product.brand.replace(/\s+/g, '_')}_${product.namaBarang.replace(/\s+/g, '_')}_${product.barcode}.png`
+        });
 
-      // Konversi ke blob untuk Android compatibility
-      canvas.toBlob(function(blob) {
-          const safeBrand = brand.replace(/\s+/g, '_');
-          const safeName = namaBarang.replace(/\s+/g, '_');
-          const fileName = `barcode_${safeBrand}_${safeName}_${barcodeValue}.png`;
-          
-          if (isAndroidApp) {
-              // Untuk Android APK - gunakan navigator.share atau fallback
-              if (navigator.share) {
-                  navigator.share({
-                      files: [new File([blob], fileName, { type: 'image/png' })],
-                      title: 'Barcode Generated',
-                      text: `Barcode untuk ${brandNama}`
-                  }).catch(err => {
-                      console.log('Error sharing:', err);
-                      // Fallback: buka dalam tab baru
-                      const url = URL.createObjectURL(blob);
-                      window.open(url, '_blank');
-                  });
-              } else {
-                  // Fallback untuk Android yang tidak support navigator.share
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = fileName;
-                  document.body.appendChild(a);
-                  a.click();
-                  document.body.removeChild(a);
-                  URL.revokeObjectURL(url);
-              }
-          } else {
-              // Untuk browser desktop/web
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = fileName;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              URL.revokeObjectURL(url);
-          }
-      }, 'image/png');
-  });
+        // Buat preview item
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'barcode-item';
+        
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'barcode-item-info';
+        infoDiv.textContent = `${product.brand} - ${product.namaBarang}`;
+        
+        const canvasClone = document.createElement('canvas');
+        canvasClone.width = canvas.width;
+        canvasClone.height = canvas.height;
+        const ctx = canvasClone.getContext('2d');
+        ctx.drawImage(canvas, 0, 0);
+        
+        itemDiv.appendChild(infoDiv);
+        itemDiv.appendChild(canvasClone);
+        container.appendChild(itemDiv);
+    });
+
+    document.getElementById('barcodeModalOverlay').style.display = 'flex';
+}
+
+// Fungsi untuk download PNG (Android compatible)
+function downloadAsZip(barcodes) {
+    // Untuk Android, kita akan download satu per satu
+    barcodes.forEach((barcodeData, index) => {
+        setTimeout(() => {
+            barcodeData.canvas.toBlob(function(blob) {
+                // Method yang lebih kompatibel untuk Android
+                if (navigator.share && navigator.canShare && navigator.canShare({files: [new File([blob], barcodeData.filename, {type: 'image/png'})]})) {
+                    // Gunakan Web Share API jika tersedia
+                    const file = new File([blob], barcodeData.filename, {type: 'image/png'});
+                    navigator.share({
+                        files: [file],
+                        title: 'Barcode Generated',
+                        text: `Barcode untuk ${barcodeData.product.namaBarang}`
+                    }).catch(err => console.log('Error sharing:', err));
+                } else {
+                    // Fallback: download biasa
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = barcodeData.filename;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }
+            }, 'image/png');
+        }, index * 500); // Delay untuk menghindari konflik
+    });
+}
+
+// Fungsi untuk generate PDF
+function generatePDF(barcodes) {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 10;
+    const barcodeWidth = pageWidth - (margin * 2);
+    const barcodeHeight = 40;
+    let currentY = margin;
+
+    barcodes.forEach((barcodeData, index) => {
+        if (index > 0 && currentY + barcodeHeight > pageHeight - margin) {
+            pdf.addPage();
+            currentY = margin;
+        }
+
+        // Convert canvas to image data
+        const imgData = barcodeData.canvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', margin, currentY, barcodeWidth, barcodeHeight);
+        currentY += barcodeHeight + 10;
+    });
+
+    // Save PDF
+    const filename = `barcodes_${new Date().getTime()}.pdf`;
+    pdf.save(filename);
+}
+
+// Fungsi untuk fullscreen view
+function showFullscreenBarcode(index = 0) {
+    currentFullscreenIndex = index;
+    const fullscreenCanvas = document.getElementById('fullscreenCanvas');
+    const counter = document.getElementById('fullscreenCounter');
+    
+    if (generatedBarcodes[index]) {
+        const sourceCanvas = generatedBarcodes[index].canvas;
+        fullscreenCanvas.width = sourceCanvas.width;
+        fullscreenCanvas.height = sourceCanvas.height;
+        
+        const ctx = fullscreenCanvas.getContext('2d');
+        ctx.drawImage(sourceCanvas, 0, 0);
+        
+        counter.textContent = `${index + 1} / ${generatedBarcodes.length}`;
+    }
+    
+    document.getElementById('fullscreenBarcode').style.display = 'flex';
+}
+
+// Update event listener untuk generate barcode button
+document.getElementById('btnGenerateBarcode').addEventListener('click', () => {
+    const selectedCheckboxes = [...document.querySelectorAll('.select-row:checked')];
+    if (selectedCheckboxes.length === 0) {
+        alert('Pilih minimal satu item untuk generate barcode.');
+        return;
+    }
+
+    const selectedProducts = selectedCheckboxes.map(cb => {
+        const tr = cb.closest('tr');
+        return {
+            namaBarang: tr.dataset.nama,
+            brand: tr.dataset.brand,
+            harga: tr.dataset.harga,
+            barcode: tr.dataset.barcode
+        };
+    });
+
+    showBarcodeModal(selectedProducts);
 });
 
+// Event listeners untuk modal barcode
+document.getElementById('savePngBtn').addEventListener('click', () => {
+    downloadAsZip(generatedBarcodes);
+});
+
+document.getElementById('savePdfBtn').addEventListener('click', () => {
+    generatePDF(generatedBarcodes);
+});
+
+document.getElementById('viewFullBtn').addEventListener('click', () => {
+    showFullscreenBarcode(0);
+});
+
+document.getElementById('closeBarcodeModal').addEventListener('click', () => {
+    document.getElementById('barcodeModalOverlay').style.display = 'none';
+});
+
+// Event listeners untuk fullscreen barcode
+document.getElementById('prevBarcode').addEventListener('click', () => {
+    if (currentFullscreenIndex > 0) {
+        showFullscreenBarcode(currentFullscreenIndex - 1);
+    }
+});
+
+document.getElementById('nextBarcode').addEventListener('click', () => {
+    if (currentFullscreenIndex < generatedBarcodes.length - 1) {
+        showFullscreenBarcode(currentFullscreenIndex + 1);
+    }
+});
+
+document.getElementById('closeFullscreen').addEventListener('click', () => {
+    document.getElementById('fullscreenBarcode').style.display = 'none';
+});
+
+// Close modal when clicking outside
+document.getElementById('barcodeModalOverlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('barcodeModalOverlay')) {
+        document.getElementById('barcodeModalOverlay').style.display = 'none';
+    }
+});
+
+document.getElementById('fullscreenBarcode').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('fullscreenBarcode')) {
+        document.getElementById('fullscreenBarcode').style.display = 'none';
+    }
+});
     
     // Quagga.js Scanner functions
     let isScanning = false;
