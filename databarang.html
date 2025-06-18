@@ -178,7 +178,7 @@ table td:first-child {
     tbody td {
       text-align: center;
       padding: 10px 8px;
-      font-size: 0.9rem;
+      font-size: 0.7rem;
       color: #444;
       word-wrap: break-word;
       user-select: text;
@@ -702,6 +702,52 @@ table td:first-child {
     width: 18px;
     height: 18px;
 }
+
+.form-group {
+    margin-bottom: 16px;
+    position: relative; /* Tambahkan ini */
+}
+
+.recommendation-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #4a69ff;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.recommendation-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    color: #2a3eb1;
+    font-weight: 500;
+    border-bottom: 1px solid #e0e6ff;
+    transition: background-color 0.2s ease;
+}
+
+.recommendation-item:hover,
+.recommendation-item.selected {
+    background-color: #e7ebff;
+}
+
+.recommendation-item:last-child {
+    border-bottom: none;
+}
+
+.no-recommendations {
+    padding: 10px 12px;
+    color: #888;
+    font-style: italic;
+    text-align: center;
+}
+
   </style>
   <!-- Load Quagga.js from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
@@ -767,33 +813,35 @@ table td:first-child {
       <h2 id="modalTitle">Tambah Data Barang</h2>
       <form id="addDataForm" autocomplete="off">
         <div class="form-group">
-          <label for="namaBarang">Nama Barang</label>
-          <input type="text" id="namaBarang" name="namaBarang" placeholder="Masukkan nama barang" required />
+            <label for="namaBarang">Nama Barang</label>
+            <input type="text" id="namaBarang" name="namaBarang" placeholder="Masukkan nama barang" required autocomplete="off" />
+            <div id="namaBarangDropdown" class="recommendation-dropdown"></div>
         </div>
         <div class="form-group">
-          <label for="brand">Brand</label>
-          <input type="text" id="brand" name="brand" placeholder="Masukkan brand" required />
+            <label for="brand">Brand</label>
+            <input type="text" id="brand" name="brand" placeholder="Masukkan brand" required autocomplete="off" />
+            <div id="brandDropdown" class="recommendation-dropdown"></div>
         </div>
         <div class="form-group">
-          <label for="harga">Harga</label>
-          <input type="text" id="harga" name="harga" placeholder="Masukkan harga" required />
+            <label for="harga">Harga</label>
+            <input type="text" id="harga" name="harga" placeholder="Masukkan harga" required inputmode="numeric" />
         </div>
         <div class="form-group">
-          <label for="stok">Stok</label>
-          <input type="number" id="stok" name="stok" min="0" placeholder="Masukkan stok" required />
+            <label for="stok">Stok</label>
+            <input type="number" id="stok" name="stok" min="0" placeholder="Masukkan stok" required />
         </div>
         <div class="form-group">
-          <label for="barcode">Nomor Barcode</label>
-          <div class="input-row">
-            <input type="text" id="barcode" name="barcode" placeholder="Masukkan nomor barcode" required autocomplete="off" />
-            <button type="button" id="scanBarcodeBtn" class="scan-barcode-btn" aria-label="Scan Barcode">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <path d="M7 3v18M17 3v18M3 7h18M3 17h18"></path>
-              </svg>
-              Scan
-            </button>
-          </div>
+            <label for="barcode">Nomor Barcode</label>
+            <div class="input-row">
+                <input type="text" id="barcode" name="barcode" placeholder="Masukkan nomor barcode" required autocomplete="off" />
+                <button type="button" id="scanBarcodeBtn" class="scan-barcode-btn" aria-label="Scan Barcode">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <path d="M7 3v18M17 3v18M3 7h18M3 17h18"></path>
+                    </svg>
+                    Scan
+                </button>
+            </div>
           <!-- Scanner container for Quagga -->
           <div id="scanner-container" aria-label="Scanner Barcode">
             <button id="closeScannerBtn" aria-label="Tutup Scanner">&times;</button>
@@ -815,6 +863,10 @@ table td:first-child {
           <div class="barcode-preview-container" id="barcodePreviewContainer">
               <!-- Barcode previews akan ditampilkan di sini -->
           </div>
+          <div class="download-notice">
+              <p>Jika ingin melakukan download file gunakan Chrome</p>
+          </div>
+          <div class="barcode-actions">
           <div class="barcode-actions">
               <button class="barcode-btn save-png" id="savePngBtn">
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -856,6 +908,9 @@ table td:first-child {
       </div>
   </div>
 
+  <!-- Firebase Storage SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+
   <!-- 4. Tambahkan library jsPDF untuk PDF generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -873,6 +928,11 @@ table td:first-child {
     const barcodeInput = document.getElementById('barcode'); // Ambil elemen input barcode
     const scannerContainer = document.getElementById('scanner-container'); // Ambil elemen scanner
     const closeScannerBtn = document.getElementById('closeScannerBtn'); // Tombol tutup scanner
+    // Variabel untuk menyimpan unique values
+    let uniqueNamaBarang = new Set();
+    let uniqueBrands = new Set();
+    let currentSelectedIndex = -1;
+    let currentDropdown = null;
 
     let editMode = false;
     let editProductId = null;
@@ -897,30 +957,192 @@ table td:first-child {
         return rupiah;
     }
 
+    // Fungsi untuk mengupdate unique values dari products
+function updateUniqueValues() {
+    uniqueNamaBarang.clear();
+    uniqueBrands.clear();
+    
+    products.forEach(product => {
+        if (product.namaBarang) uniqueNamaBarang.add(product.namaBarang.toLowerCase());
+        if (product.brand) uniqueBrands.add(product.brand.toLowerCase());
+    });
+}
+
+// Fungsi untuk menampilkan rekomendasi
+function showRecommendations(input, dropdown, recommendations) {
+    const query = input.value.toLowerCase().trim();
+    
+    if (!query) {
+        dropdown.style.display = 'none';
+        currentDropdown = null;
+        return;
+    }
+    
+    const filtered = Array.from(recommendations)
+        .filter(item => item.includes(query))
+        .slice(0, 5); // Batasi maksimal 5 rekomendasi
+    
+    if (filtered.length === 0) {
+        dropdown.innerHTML = '<div class="no-recommendations">Tidak ada rekomendasi</div>';
+        dropdown.style.display = 'block';
+        currentDropdown = dropdown;
+        return;
+    }
+    
+    dropdown.innerHTML = filtered
+        .map((item, index) => `<div class="recommendation-item" data-index="${index}" data-value="${item}">${item}</div>`)
+        .join('');
+    
+    dropdown.style.display = 'block';
+    currentDropdown = dropdown;
+    currentSelectedIndex = -1;
+}
+
+// Fungsi untuk menyembunyikan dropdown
+function hideDropdown(dropdown) {
+    dropdown.style.display = 'none';
+    currentDropdown = null;
+    currentSelectedIndex = -1;
+}
+
+// Fungsi untuk memilih rekomendasi
+function selectRecommendation(input, dropdown, value) {
+    input.value = value;
+    hideDropdown(dropdown);
+    input.focus();
+}
+
+// Fungsi untuk navigasi keyboard
+function handleKeyboardNavigation(e, input, dropdown) {
+    if (!currentDropdown || currentDropdown !== dropdown) return;
+    
+    const items = dropdown.querySelectorAll('.recommendation-item');
+    if (items.length === 0) return;
+    
+    switch(e.key) {
+        case 'ArrowDown':
+            e.preventDefault();
+            currentSelectedIndex = Math.min(currentSelectedIndex + 1, items.length - 1);
+            updateSelection(items);
+            break;
+        case 'ArrowUp':
+            e.preventDefault();
+            currentSelectedIndex = Math.max(currentSelectedIndex - 1, -1);
+            updateSelection(items);
+            break;
+        case 'Enter':
+            e.preventDefault();
+            if (currentSelectedIndex >= 0) {
+                const selected = items[currentSelectedIndex];
+                selectRecommendation(input, dropdown, selected.dataset.value);
+            }
+            break;
+        case 'Escape':
+            hideDropdown(dropdown);
+            break;
+    }
+}
+
+// Fungsi untuk mengupdate selection visual
+function updateSelection(items) {
+    items.forEach((item, index) => {
+        item.classList.toggle('selected', index === currentSelectedIndex);
+    });
+}
+
+// 4. EVENT LISTENERS - TAMBAHKAN SETELAH DEKLARASI VARIABEL
+
+// Setup rekomendasi untuk nama barang
+const namaBarangInput = document.getElementById('namaBarang');
+const namaBarangDropdown = document.getElementById('namaBarangDropdown');
+
+namaBarangInput.addEventListener('input', () => {
+    showRecommendations(namaBarangInput, namaBarangDropdown, uniqueNamaBarang);
+});
+
+namaBarangInput.addEventListener('keydown', (e) => {
+    handleKeyboardNavigation(e, namaBarangInput, namaBarangDropdown);
+});
+
+namaBarangInput.addEventListener('blur', () => {
+    // Delay untuk memungkinkan click pada dropdown
+    setTimeout(() => hideDropdown(namaBarangDropdown), 150);
+});
+
+namaBarangDropdown.addEventListener('click', (e) => {
+    const item = e.target.closest('.recommendation-item');
+    if (item) {
+        selectRecommendation(namaBarangInput, namaBarangDropdown, item.dataset.value);
+    }
+});
+
+// Setup rekomendasi untuk brand
+const brandInput = document.getElementById('brand');
+const brandDropdown = document.getElementById('brandDropdown');
+
+brandInput.addEventListener('input', () => {
+    showRecommendations(brandInput, brandDropdown, uniqueBrands);
+});
+
+brandInput.addEventListener('keydown', (e) => {
+    handleKeyboardNavigation(e, brandInput, brandDropdown);
+});
+
+brandInput.addEventListener('blur', () => {
+    setTimeout(() => hideDropdown(brandDropdown), 150);
+});
+
+brandDropdown.addEventListener('click', (e) => {
+    const item = e.target.closest('.recommendation-item');
+    if (item) {
+        selectRecommendation(brandInput, brandDropdown, item.dataset.value);
+    }
+});
+
     // Event listener untuk input harga
     hargaInput.addEventListener('input', function (e) {
-        let cursorPosition = hargaInput.selectionStart;
-        let originalLength = hargaInput.value.length;
+    let value = e.target.value;
+    
+    // Hapus karakter non-digit
+    value = value.replace(/[^\d]/g, '');
+    
+    // Format dengan titik sebagai pemisah ribuan
+    if (value) {
+        value = parseInt(value).toLocaleString('id-ID');
+    }
+    
+    e.target.value = value;
+});
 
-        // Format angka saat pengguna mengetik
-        hargaInput.value = formatRupiah(hargaInput.value);
-
-        let newLength = hargaInput.value.length;
-        cursorPosition = cursorPosition + (newLength - originalLength);
-        hargaInput.setSelectionRange(cursorPosition, cursorPosition);
-    });
+// Prevent non-numeric characters
+hargaInput.addEventListener('keypress', function (e) {
+    // Allow: backspace, delete, tab, escape, enter
+    if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+        (e.keyCode === 65 && e.ctrlKey === true) ||
+        (e.keyCode === 67 && e.ctrlKey === true) ||
+        (e.keyCode === 86 && e.ctrlKey === true) ||
+        (e.keyCode === 88 && e.ctrlKey === true)) {
+        return;
+    }
+    // Ensure that it is a number and stop the keypress
+    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+        e.preventDefault();
+    }
+});
 
     // Fetch all products from backend
     async function fetchProducts() {
-      const activeStoreId = localStorage.getItem('activeStoreId');
-      try {
+    const activeStoreId = localStorage.getItem('activeStoreId');
+    try {
         const snapshot = await window.firebaseUtils.productsCollection.where('storeId', '==', activeStoreId).get();
         products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        updateUniqueValues(); // Tambahkan ini
         renderTable(products);
-      } catch (error) {
+    } catch (error) {
         alert('Gagal memuat data produk: ' + error.message);
-      }
     }
+}
 
     // Render products ke tabel
     function renderTable(data) {
@@ -978,45 +1200,45 @@ table td:first-child {
     // Submit form add/edit
     // Submit form add/edit
     addDataForm.addEventListener('submit', async e => {
-        e.preventDefault();
+    e.preventDefault();
 
-        const namaBarang = addDataForm.namaBarang.value.trim();
-        const brand = addDataForm.brand.value.trim();
-        const hargaRaw = addDataForm.harga.value.trim().replace(/\./g, ''); // Menghapus titik sebelum konversi
-        const harga = Number(hargaRaw);
-        const stok = Number(addDataForm.stok.value.trim());
-        const barcode = addDataForm.barcode.value.trim();
+    const namaBarang = addDataForm.namaBarang.value.trim();
+    const brand = addDataForm.brand.value.trim();
+    const hargaRaw = addDataForm.harga.value.trim().replace(/\./g, ''); // Menghapus titik pemisah ribuan
+    const harga = Number(hargaRaw);
+    const stok = Number(addDataForm.stok.value.trim());
+    const barcode = addDataForm.barcode.value.trim();
 
-        if (!namaBarang || !brand || isNaN(harga) || isNaN(stok) || !barcode) {
-            alert('Semua field wajib diisi dengan benar.');
-            return;
+    if (!namaBarang || !brand || isNaN(harga) || harga <= 0 || isNaN(stok) || !barcode) {
+        alert('Semua field wajib diisi dengan benar. Harga harus berupa angka positif.');
+        return;
+    }
+
+    const activeStoreId = localStorage.getItem('activeStoreId');
+    const productData = { namaBarang, brand, harga, stok, barcode, storeId: activeStoreId };
+
+    // Cek apakah barcode sudah ada, kecuali jika sedang dalam mode edit
+    const barcodeExists = products.some(product => product.barcode === barcode && product.id !== editProductId);
+    if (barcodeExists) {
+        alert('Nomor barcode sudah ada. Silakan gunakan nomor barcode yang lain.');
+        return;
+    }
+
+    try {
+        if (!editMode) {
+            await window.firebaseUtils.addProduct(productData);
+            alert('Produk berhasil ditambahkan');
+        } else {
+            await window.firebaseUtils.updateProduct(editProductId, productData);
+            alert('Produk berhasil diperbarui');
         }
-
-        const activeStoreId = localStorage.getItem('activeStoreId');
-        const productData = { namaBarang, brand, harga, stok, barcode, storeId: activeStoreId };
-
-        // Cek apakah barcode sudah ada, kecuali jika sedang dalam mode edit
-        const barcodeExists = products.some(product => product.barcode === barcode && product.id !== editProductId);
-        if (barcodeExists) {
-            alert('Nomor barcode sudah ada. Silakan gunakan nomor barcode yang lain.');
-            return;
-        }
-
-        try {
-            if (!editMode) {
-                await window.firebaseUtils.addProduct(productData);
-                alert('Produk berhasil ditambahkan');
-            } else {
-                await window.firebaseUtils.updateProduct(editProductId, productData);
-                alert('Produk berhasil diperbarui');
-            }
-            modalOverlay.style.display = 'none';
-            addDataForm.reset();
-            fetchProducts();
-        } catch (error) {
-            alert(error.message);
-        }
-    });
+        modalOverlay.style.display = 'none';
+        addDataForm.reset();
+        fetchProducts(); // Ini akan mengupdate unique values juga
+    } catch (error) {
+        alert(error.message);
+    }
+});
 
 
     // Load data saat halaman dibuka
@@ -1024,39 +1246,52 @@ table td:first-child {
 
     // Handle edit and delete buttons in table using event delegation
     dataTableBody.addEventListener('click', async e => {
-      const target = e.target.closest('button');
-      if (!target) return;
+    const target = e.target.closest('button');
+    if (!target) return;
 
-      const tr = target.closest('tr');
-      const id = tr.dataset.id;
+    const tr = target.closest('tr');
+    const id = tr.dataset.id;
 
-      if (target.classList.contains('edit')) {
+    if (target.classList.contains('edit')) {
         const product = products.find(p => p.id === id);
         if (!product) {
-          alert('Produk tidak ditemukan');
-          return;
+            alert('Produk tidak ditemukan');
+            return;
         }
         editMode = true;
         editProductId = id;
         document.getElementById('modalTitle').textContent = 'Edit Data Barang';
         addDataForm.namaBarang.value = product.namaBarang;
         addDataForm.brand.value = product.brand;
-        addDataForm.harga.value = Number(product.harga).toLocaleString('id-ID'); // Format harga saat edit
+        // Format harga untuk edit dengan toLocaleString
+        addDataForm.harga.value = Number(product.harga).toLocaleString('id-ID');
         addDataForm.stok.value = product.stok;
         addDataForm.barcode.value = product.barcode;
         modalOverlay.style.display = 'flex';
-      } else if (target.classList.contains('delete')) {
+    } else if (target.classList.contains('delete')) {
         if (confirm(`Yakin ingin menghapus produk "${tr.dataset.nama}"?`)) {
-          try {
-            await window.firebaseUtils.deleteProduct(id);
-            alert('Produk berhasil dihapus');
-            fetchProducts();
-          } catch (error) {
-            alert(error.message);
-          }
+            try {
+                await window.firebaseUtils.deleteProduct(id);
+                alert('Produk berhasil dihapus');
+                fetchProducts();
+            } catch (error) {
+                alert(error.message);
+            }
         }
-      }
-    });
+    }
+});
+
+
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.form-group')) {
+        const dropdowns = document.querySelectorAll('.recommendation-dropdown');
+        dropdowns.forEach(dropdown => {
+            dropdown.style.display = 'none';
+        });
+        currentDropdown = null;
+        currentSelectedIndex = -1;
+    }
+});
 
     // Search filter
     searchInput.addEventListener('input', () => {
@@ -1150,156 +1385,595 @@ function showBarcodeModal(selectedProducts) {
     document.getElementById('barcodeModalOverlay').style.display = 'flex';
 }
 
-// Fungsi download PNG sebagai link
-function downloadAsLinks(barcodes) {
-    const container = document.getElementById('barcodePreviewContainer');
-    const existingLinks = container.querySelectorAll('.download-link');
-    existingLinks.forEach(link => link.remove());
 
+// Enhanced Auto Download Functions untuk PDF/PNG
+// Mendukung berbagai perangkat dan browser
+
+// Fungsi utama untuk auto download PNG
+function downloadAsZip(barcodes) {
     barcodes.forEach((barcodeData, index) => {
-        barcodeData.canvas.toBlob(blob => {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = barcodeData.filename;
-            link.textContent = `Download ${barcodeData.filename}`;
-            link.className = 'download-link';
-            link.style.display = 'block';
-            link.style.marginTop = '5px';
-            link.style.color = '#2a3eb1';
-            link.style.fontWeight = '600';
-            link.style.textDecoration = 'underline';
-            link.target = '_blank';
-
-            const barcodeItems = document.querySelectorAll('.barcode-item');
-            if (barcodeItems[index]) {
-                barcodeItems[index].appendChild(link);
-            }
-
-            setTimeout(() => URL.revokeObjectURL(url), 60000);
-        }, 'image/png');
+        setTimeout(() => {
+            barcodeData.canvas.toBlob(function(blob) {
+                const filename = barcodeData.filename || `barcode_${index + 1}.png`;
+                autoDownloadFile(blob, filename, 'image/png');
+            }, 'image/png');
+        }, index * 500);
     });
 }
 
-// Fungsi generate PDF dan buat link download
-function generatePDFLink(barcodes) {
+// Fungsi utama untuk auto download PDF dengan layout grid 4x8
+function generatePDF(barcodes) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 10;
-    const barcodeWidth = pageWidth - (margin * 2);
-    const barcodeHeight = 40;
-    let currentY = margin;
-
+    
+    // Layout configuration - 4 kolom x 8 baris = 32 barcode per halaman
+    const margin = 5; // Margin lebih kecil untuk memaksimalkan ruang
+    const cols = 4;
+    const rows = 8;
+    const maxBarcodesPerPage = cols * rows;
+    
+    // Hitung ukuran barcode berdasarkan ruang yang tersedia
+    const availableWidth = pageWidth - (margin * 2);
+    const availableHeight = pageHeight - (margin * 2);
+    const barcodeWidth = (availableWidth - (margin * (cols - 1))) / cols;
+    const barcodeHeight = (availableHeight - (margin * (rows - 1))) / rows;
+    
+    let currentPage = 0;
+    
     barcodes.forEach((barcodeData, index) => {
-        if (index > 0 && currentY + barcodeHeight > pageHeight - margin) {
+        const pageIndex = Math.floor(index / maxBarcodesPerPage);
+        const positionInPage = index % maxBarcodesPerPage;
+        
+        // Tambah halaman baru jika diperlukan
+        if (pageIndex > currentPage) {
             pdf.addPage();
-            currentY = margin;
+            currentPage = pageIndex;
         }
+        
+        // Hitung posisi barcode dalam grid
+        const col = positionInPage % cols;
+        const row = Math.floor(positionInPage / cols);
+        
+        const x = margin + (col * (barcodeWidth + margin));
+        const y = margin + (row * (barcodeHeight + margin));
+        
+        // Tambahkan barcode ke PDF
         const imgData = barcodeData.canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', margin, currentY, barcodeWidth, barcodeHeight);
-        currentY += barcodeHeight + 10;
+        pdf.addImage(imgData, 'PNG', x, y, barcodeWidth, barcodeHeight);
     });
 
-    const filename = `barcodes_${new Date().getTime()}.pdf`;
+    const filename = `barcodes_grid_${new Date().getTime()}.pdf`;
     const pdfBlob = pdf.output('blob');
-
-    const url = URL.createObjectURL(pdfBlob);
-    const container = document.getElementById('barcodePreviewContainer');
-
-    const oldPdfLink = document.getElementById('pdfDownloadLink');
-    if (oldPdfLink) oldPdfLink.remove();
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.textContent = `Download ${filename}`;
-    link.id = 'pdfDownloadLink';
-    link.style.display = 'block';
-    link.style.marginTop = '15px';
-    link.style.color = '#dc3545';
-    link.style.fontWeight = '700';
-    link.style.textDecoration = 'underline';
-    link.target = '_blank';
-
-    container.appendChild(link);
-
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    
+    autoDownloadFile(pdfBlob, filename, 'application/pdf');
 }
 
-// Update tombol save PNG dan PDF
-document.getElementById('savePngBtn').addEventListener('click', () => {
-    downloadAsLinks(generatedBarcodes);
-});
-
-document.getElementById('savePdfBtn').addEventListener('click', () => {
-    generatePDFLink(generatedBarcodes);
-});
-
-
-// Tambahkan fungsi fallback ini:
-function fallbackDownload(dataUri, filename) {
-    try {
-        // Method 1: Try creating download link (might work in some webviews)
-        const link = document.createElement('a');
-        link.href = dataUri;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    } catch (e) {
-        console.error('Download failed:', e);
-        // Method 2: Open in new window so user can save manually
-        const newWindow = window.open();
-        if (newWindow) {
-            newWindow.document.write(`
-                <html>
-                    <head><title>Download ${filename}</title></head>
-                    <body style="margin:0;text-align:center;">
-                        <h3>Tekan dan tahan gambar/file di bawah, lalu pilih "Simpan"</h3>
-                        <img src="${dataUri}" style="max-width:100%;height:auto;" />
-                        <br><br>
-                        <a href="${dataUri}" download="${filename}">Download ${filename}</a>
-                    </body>
-                </html>
-            `);
-        } else {
-            alert('Popup diblokir. Aktifkan popup untuk download atau gunakan fitur share.');
+// Fungsi untuk generate PDF dengan layout yang lebih rapat
+function generateCompactPDF(barcodes) {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    // Layout yang sangat rapat untuk memaksimalkan jumlah barcode
+    const margin = 3;
+    const cols = 4;
+    const rows = 10; // 10 baris untuk layout yang lebih rapat
+    const maxBarcodesPerPage = cols * rows; // 40 barcode per halaman
+    
+    const availableWidth = pageWidth - (margin * 2);
+    const availableHeight = pageHeight - (margin * 2);
+    const spacingX = 2; // Jarak horizontal antar barcode
+    const spacingY = 2; // Jarak vertikal antar barcode
+    
+    const barcodeWidth = (availableWidth - (spacingX * (cols - 1))) / cols;
+    const barcodeHeight = (availableHeight - (spacingY * (rows - 1))) / rows;
+    
+    let currentPage = 0;
+    
+    barcodes.forEach((barcodeData, index) => {
+        const pageIndex = Math.floor(index / maxBarcodesPerPage);
+        const positionInPage = index % maxBarcodesPerPage;
+        
+        if (pageIndex > currentPage) {
+            pdf.addPage();
+            currentPage = pageIndex;
         }
+        
+        const col = positionInPage % cols;
+        const row = Math.floor(positionInPage / cols);
+        
+        const x = margin + (col * (barcodeWidth + spacingX));
+        const y = margin + (row * (barcodeHeight + spacingY));
+        
+        const imgData = barcodeData.canvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', x, y, barcodeWidth, barcodeHeight);
+    });
+
+    const filename = `barcodes_compact_${new Date().getTime()}.pdf`;
+    const pdfBlob = pdf.output('blob');
+    
+    autoDownloadFile(pdfBlob, filename, 'application/pdf');
+}
+
+// Fungsi universal untuk auto download file
+function autoDownloadFile(blob, filename, mimeType) {
+    // Cek kompatibilitas browser
+    if (!isBrowserCompatible()) {
+        showBrowserCompatibilityWarning();
+        return;
+    }
+    
+    // Deteksi lingkungan
+    const isAndroidWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
+    const isIOSWebView = /iPhone|iPad/.test(navigator.userAgent) && !window.MSStream;
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isInAppBrowser = isAndroidWebView || isIOSWebView;
+    
+    console.log('Download environment:', {
+        isAndroidWebView,
+        isIOSWebView,
+        isMobile,
+        isInAppBrowser,
+        userAgent: navigator.userAgent
+    });
+
+    // Jika di dalam aplikasi (WebView), tampilkan peringatan
+    if (isInAppBrowser) {
+        showInAppBrowserWarning();
+        // Tetap coba download, tapi dengan peringatan
+    }
+
+    // Method 1: Android WebView dengan interface khusus
+    if (isAndroidWebView && window.Android && window.Android.downloadFile) {
+        try {
+            const reader = new FileReader();
+            reader.onload = function() {
+                window.Android.downloadFile(reader.result, filename, mimeType);
+                showDownloadSuccess(filename);
+            };
+            reader.onerror = function() {
+                console.error('FileReader error');
+                fallbackDownloadMethods(blob, filename, mimeType);
+            };
+            reader.readAsDataURL(blob);
+            return;
+        } catch (e) {
+            console.error('Android interface failed:', e);
+        }
+    }
+
+    // Method 2: Modern download dengan createElement
+    if (downloadWithLink(blob, filename)) {
+        return;
+    }
+
+    // Method 3: Web Share API (Mobile browsers)
+    if (shareWithWebAPI(blob, filename, mimeType)) {
+        return;
+    }
+
+    // Method 4: Fallback methods
+    fallbackDownloadMethods(blob, filename, mimeType);
+}
+
+// Cek kompatibilitas browser
+function isBrowserCompatible() {
+    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    const isEdge = /Edg/.test(navigator.userAgent);
+    const isFirefox = /Firefox/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    
+    // Chrome dan Edge memiliki kompatibilitas terbaik
+    return isChrome || isEdge || isFirefox;
+}
+
+
+// Method download dengan createElement (paling universal)
+function downloadWithLink(blob, filename) {
+    try {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        // Set attributes
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        
+        // Add to DOM, click, then remove
+        document.body.appendChild(link);
+        
+        // Trigger click dengan berbagai metode untuk kompatibilitas
+        if (link.click) {
+            link.click();
+        } else if (document.createEvent) {
+            const event = document.createEvent('MouseEvents');
+            event.initEvent('click', true, true);
+            link.dispatchEvent(event);
+        }
+        
+        // Cleanup
+        setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }, 100);
+        
+        showDownloadSuccess(filename);
+        return true;
+        
+    } catch (e) {
+        console.error('Link download failed:', e);
+        return false;
     }
 }
 
-// Tambahkan pengecekan untuk Android WebView saat aplikasi dimuat:
+// Web Share API untuk mobile browsers
+function shareWithWebAPI(blob, filename, mimeType) {
+    if (!navigator.share || !navigator.canShare) {
+        return false;
+    }
+
+    try {
+        const file = new File([blob], filename, { type: mimeType });
+        
+        if (navigator.canShare({ files: [file] })) {
+            navigator.share({
+                files: [file],
+                title: 'Download File',
+                text: `File: ${filename}`
+            }).then(() => {
+                console.log('File shared successfully');
+            }).catch(err => {
+                console.log('Share failed:', err);
+                return false;
+            });
+            return true;
+        }
+    } catch (e) {
+        console.error('Web Share API failed:', e);
+    }
+    
+    return false;
+}
+
+// Fallback methods untuk compatibility
+function fallbackDownloadMethods(blob, filename, mimeType) {
+    const dataUrl = URL.createObjectURL(blob);
+    
+    // Method 1: Force download dengan window.location
+    try {
+        const downloadUrl = `data:${mimeType};charset=utf-8,` + encodeURIComponent(dataUrl);
+        window.location.href = downloadUrl;
+        showDownloadSuccess(filename);
+        return;
+    } catch (e) {
+        console.error('Location download failed:', e);
+    }
+    
+    // Method 2: Open in new window dengan instruksi download
+    try {
+        const reader = new FileReader();
+        reader.onload = function() {
+            const base64 = reader.result;
+            const newWindow = window.open('', '_blank');
+            
+            if (newWindow) {
+                newWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Download ${filename}</title>
+                        <meta name="viewport" content="width=device-width, initial-scale=1">
+                        <style>
+                            body { 
+                                font-family: Arial, sans-serif; 
+                                text-align: center; 
+                                padding: 20px;
+                                background: #f8f9fa;
+                                line-height: 1.6;
+                            }
+                            .container {
+                                max-width: 600px;
+                                margin: 0 auto;
+                                background: white;
+                                padding: 30px;
+                                border-radius: 12px;
+                                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                            }
+                            .download-btn {
+                                display: inline-block;
+                                background: #007bff;
+                                color: white;
+                                padding: 15px 30px;
+                                text-decoration: none;
+                                border-radius: 8px;
+                                margin: 15px;
+                                font-weight: bold;
+                                font-size: 16px;
+                                transition: background 0.3s;
+                            }
+                            .download-btn:hover {
+                                background: #0056b3;
+                            }
+                            .warning {
+                                background: #fff3cd;
+                                border: 1px solid #ffeaa7;
+                                color: #856404;
+                                padding: 15px;
+                                border-radius: 8px;
+                                margin: 20px 0;
+                            }
+                            .instructions {
+                                background: #e7f3ff;
+                                border: 1px solid #b3d9ff;
+                                color: #004085;
+                                padding: 15px;
+                                border-radius: 8px;
+                                margin: 20px 0;
+                                text-align: left;
+                            }
+                            img {
+                                max-width: 100%;
+                                height: auto;
+                                border: 2px solid #ddd;
+                                border-radius: 8px;
+                                margin: 15px 0;
+                            }
+                            .icon {
+                                font-size: 48px;
+                                margin: 20px 0;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="icon">📄</div>
+                            <h2>Download File</h2>
+                            <p><strong>Filename:</strong> ${filename}</p>
+                            
+                            <div class="warning">
+                                ⚠️ <strong>Penting:</strong> Download optimal hanya di Google Chrome!<br>
+                                Jika Anda menggunakan aplikasi, buka link ini di browser eksternal.
+                            </div>
+                            
+                            <a href="${base64}" download="${filename}" class="download-btn">
+                                📥 Download ${filename}
+                            </a>
+                            
+                            <div class="instructions">
+                                <strong>📋 Cara Download:</strong><br>
+                                1. Klik tombol "Download" di atas<br>
+                                2. Jika tidak otomatis, klik kanan pada tombol → "Save link as"<br>
+                                3. Pada mobile: tekan dan tahan tombol → pilih "Download" atau "Simpan"<br>
+                                4. Jika masih gagal, buka halaman ini di Google Chrome
+                            </div>
+                            
+                            ${mimeType.startsWith('image/') ? `
+                                <div style="margin: 20px 0;">
+                                    <h3>Preview:</h3>
+                                    <img src="${base64}" alt="Preview" />
+                                </div>
+                            ` : ''}
+                            
+                            <div class="warning">
+                                <strong>💡 Tips:</strong><br>
+                                • Gunakan Google Chrome untuk hasil terbaik<br>
+                                • Pastikan popup tidak diblokir<br>
+                                • Jika di aplikasi, salin link dan buka di browser
+                            </div>
+                        </div>
+                        <script>
+                            // Auto download attempt
+                            setTimeout(function() {
+                                var link = document.createElement('a');
+                                link.href = '${base64}';
+                                link.download = '${filename}';
+                                link.click();
+                            }, 1500);
+                        <\/script>
+                    </body>
+                    </html>
+                `);
+                newWindow.document.close();
+            } else {
+                showDownloadError('Popup diblokir. Silakan aktifkan popup atau gunakan Google Chrome.');
+            }
+        };
+        reader.readAsDataURL(blob);
+        
+    } catch (e) {
+        console.error('All download methods failed:', e);
+        showDownloadError('Download gagal. Silakan gunakan Google Chrome dan pastikan popup tidak diblokir.');
+    }
+}
+
+// Utility functions untuk feedback
+function showDownloadSuccess(filename) {
+    console.log(`Download berhasil: ${filename}`);
+    
+    // Tampilkan notifikasi sukses
+    if (typeof showNotification === 'function') {
+        showNotification(`✅ File ${filename} berhasil didownload!`, 'success');
+    } else {
+        setTimeout(() => {
+            alert(`✅ File ${filename} berhasil didownload!\n\n💡 Cek folder Download Anda.`);
+        }, 500);
+    }
+}
+
+function showDownloadError(message) {
+    console.error('Download error:', message);
+    
+    const fullMessage = `❌ ${message}\n\n🔧 Solusi:\n• Gunakan Google Chrome\n• Buka di browser (bukan aplikasi)\n• Aktifkan popup jika diblokir`;
+    
+    if (typeof showNotification === 'function') {
+        showNotification(fullMessage, 'error');
+    } else {
+        alert(fullMessage);
+    }
+}
+
+// Enhanced initialization untuk berbagai platform
 document.addEventListener('DOMContentLoaded', function() {
     const isAndroidWebView = /Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent);
+    const isIOSWebView = /iPhone|iPad/.test(navigator.userAgent) && !window.MSStream;
+    const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
     
-    if (isAndroidWebView) {
-        console.log('Running in Android WebView (APK mode)');
-        
-        // Update button text untuk APK
-        const savePngBtn = document.getElementById('savePngBtn');
-        const savePdfBtn = document.getElementById('savePdfBtn');
-        
-        if (savePngBtn) {
-            savePngBtn.innerHTML = `
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-                Simpan PNG
-            `;
-        }
-        
-        if (savePdfBtn) {
-            savePdfBtn.innerHTML = `
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-                </svg>
-                Simpan PDF
-            `;
+    console.log('Platform detected:', {
+        isAndroidWebView,
+        isIOSWebView,
+        isMobile,
+        isChrome,
+        userAgent: navigator.userAgent
+    });
+    
+    // Update button text dan tampilkan peringatan jika perlu
+    updateButtonText(isAndroidWebView, isIOSWebView, isMobile, isChrome);
+    
+    // Tambahkan peringatan kompatibilitas
+    addCompatibilityWarning(isChrome, isAndroidWebView || isIOSWebView);
+    
+    // Test download capability
+    testDownloadCapability();
+});
+
+function updateButtonText(isAndroidWebView, isIOSWebView, isMobile, isChrome) {
+    const savePngBtn = document.getElementById('savePngBtn');
+    const savePdfBtn = document.getElementById('savePdfBtn');
+    
+    const downloadIcon = `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:5px;">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+    </svg>`;
+    
+    const warningIcon = !isChrome || isAndroidWebView || isIOSWebView ? '⚠️ ' : '';
+    
+    if (savePngBtn) {
+        if (isAndroidWebView || isIOSWebView) {
+            savePngBtn.innerHTML = `${warningIcon}${downloadIcon}Simpan PNG (Gunakan Chrome)`;
+        } else if (isMobile) {
+            savePngBtn.innerHTML = `${warningIcon}${downloadIcon}Download PNG`;
+        } else {
+            savePngBtn.innerHTML = `${downloadIcon}Download PNG`;
         }
     }
-});
+    
+    if (savePdfBtn) {
+        if (isAndroidWebView || isIOSWebView) {
+            savePdfBtn.innerHTML = `${warningIcon}${downloadIcon}Simpan PDF (Gunakan Chrome)`;
+        } else if (isMobile) {
+            savePdfBtn.innerHTML = `${warningIcon}${downloadIcon}Download PDF`;
+        } else {
+            savePdfBtn.innerHTML = `${downloadIcon}Download PDF`;
+        }
+    }
+}
+
+function addCompatibilityWarning(isChrome, isInApp) {
+    // Tambahkan peringatan kompatibilitas ke halaman
+    if (!isChrome || isInApp) {
+        const warningDiv = document.createElement('div');
+        warningDiv.style.cssText = `
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        `;
+        
+        warningDiv.innerHTML = `
+            ⚠️ <strong>PERINGATAN:</strong> Download PNG/PDF hanya optimal di <strong>Google Chrome</strong>.<br>
+            ${isInApp ? 'Anda menggunakan browser dalam aplikasi. Buka di Chrome untuk hasil terbaik!' : 'Gunakan Chrome untuk download yang stabil.'}
+        `;
+        
+        // Cari tempat yang tepat untuk menambahkan peringatan
+        const downloadSection = document.querySelector('.download-section') || 
+                               document.querySelector('[id*="download"]') || 
+                               document.body.children[0];
+        
+        if (downloadSection) {
+            downloadSection.insertAdjacentElement('beforebegin', warningDiv);
+        }
+    }
+}
+
+function testDownloadCapability() {
+    const capabilities = {
+        createElement: !!document.createElement,
+        URL_createObjectURL: !!(window.URL && window.URL.createObjectURL),
+        webShare: !!(navigator.share && navigator.canShare),
+        androidInterface: !!(window.Android && window.Android.downloadFile),
+        fileReader: !!window.FileReader,
+        isChrome: /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor),
+        isInApp: (/Android/.test(navigator.userAgent) && /wv/.test(navigator.userAgent)) || 
+                (/iPhone|iPad/.test(navigator.userAgent) && !window.MSStream)
+    };
+    
+    console.log('Download capabilities:', capabilities);
+    return capabilities;
+}
+
+// Fungsi untuk test download (untuk debugging)
+function testDownload() {
+    const testBlob = new Blob(['Test file content for barcode system'], { type: 'text/plain' });
+    autoDownloadFile(testBlob, 'test_barcode_download.txt', 'text/plain');
+}
+
+// Fungsi tambahan untuk layout PDF yang dapat dikustomisasi
+function generateCustomLayoutPDF(barcodes, options = {}) {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    // Default options
+    const config = {
+        cols: options.cols || 4,
+        rows: options.rows || 8,
+        margin: options.margin || 5,
+        spacing: options.spacing || 2,
+        orientation: options.orientation || 'portrait',
+        ...options
+    };
+    
+    const maxBarcodesPerPage = config.cols * config.rows;
+    const availableWidth = pageWidth - (config.margin * 2);
+    const availableHeight = pageHeight - (config.margin * 2);
+    
+    const barcodeWidth = (availableWidth - (config.spacing * (config.cols - 1))) / config.cols;
+    const barcodeHeight = (availableHeight - (config.spacing * (config.rows - 1))) / config.rows;
+    
+    let currentPage = 0;
+    
+    barcodes.forEach((barcodeData, index) => {
+        const pageIndex = Math.floor(index / maxBarcodesPerPage);
+        const positionInPage = index % maxBarcodesPerPage;
+        
+        if (pageIndex > currentPage) {
+            pdf.addPage();
+            currentPage = pageIndex;
+        }
+        
+        const col = positionInPage % config.cols;
+        const row = Math.floor(positionInPage / config.cols);
+        
+        const x = config.margin + (col * (barcodeWidth + config.spacing));
+        const y = config.margin + (row * (barcodeHeight + config.spacing));
+        
+        const imgData = barcodeData.canvas.toDataURL('image/png');
+        pdf.addImage(imgData, 'PNG', x, y, barcodeWidth, barcodeHeight);
+    });
+
+    const filename = `barcodes_${config.cols}x${config.rows}_${new Date().getTime()}.pdf`;
+    const pdfBlob = pdf.output('blob');
+    
+    autoDownloadFile(pdfBlob, filename, 'application/pdf');
+}
 
 
 
