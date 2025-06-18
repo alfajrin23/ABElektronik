@@ -154,7 +154,7 @@
       width: 48px;
       height: 48px;
       border-radius: 50%;
-      background-image: url('https://i.pravatar.cc/48');
+      background-image: url('https://ibb.co/sv6XvsFY');
       background-size: cover;
       background-position: center;
       flex-shrink: 0;
@@ -763,7 +763,7 @@
 </head>
 <body>
   <div class="copyright-container">
-    <a href="https://alfajrin23.github.io/personal_portofolio/" class="copyright-link">
+    <a onclick="window.open('https://alfajrin23.github.io/personal_portofolio/')" class="copyright-link">
       <p class="copyright">by Al Fajrin A A &copy; 2025</p>
     </a>
   </div>
@@ -937,7 +937,7 @@
 window.scannedProducts = [];
 
   // Flag untuk menandai apakah scanner sedang berjalan
-  let isScanning = false;
+  /* let isScanning = false;  // Removed duplicate declaration */
   let selectedProductId = null;
   
 window.addEventListener('DOMContentLoaded', async () => {
@@ -1182,189 +1182,255 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
 
-  // Function untuk membuka modal scanner
-  function openModal() {
-    console.log("Membuka modal scanner");
-    
-    // Pastikan scanner tidak sedang berjalan
-    stopQuaggaScanner();
-    
-    const overlay = document.getElementById('overlay');
-    
-    // Reset overlay content
-    overlay.innerHTML = `
-      <div id="scanModal" class="modal" role="dialog" aria-modal="true">
-        <button class="close-btn" id="closeModalBtn" aria-label="Tutup Modal" onclick="closeModal()">&times;</button>
-        <h2 id="modalTitle">Scan Barcode Barang</h2>
-        
-        <!-- Video container for scanner -->
-        <div id="interactive" class="viewport"></div>
-        
-        <form id="barcodeForm" autocomplete="off">
-          <div class="subtitle" aria-label="Judul Transaksi Manual">
-            <!-- Clipboard list icon with pulse animation -->
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M9 2H15V4H19C20.1 4 21 4.9 21 6V20C21 21.1 20.1 22 19 22H5C3.9 22 3 21.1 3 20V6C3 4.9 3.9 4 5 4H9V2ZM5 6V20H19V6H5ZM8 10H16V12H8V10ZM8 14H16V16H8V14Z"/>
+// Function untuk membuka modal scanner
+function openModal() {
+  console.log("Membuka modal scanner");
+  
+  // Pastikan scanner tidak sedang berjalan
+  stopQuaggaScanner();
+  
+  const overlay = document.getElementById('overlay');
+  
+  // Reset overlay content
+  overlay.innerHTML = `
+    <div id="scanModal" class="modal" role="dialog" aria-modal="true">
+      <button class="close-btn" id="closeModalBtn" aria-label="Tutup Modal" onclick="closeModal()">&times;</button>
+      <h2 id="modalTitle">Scan Barcode Barang</h2>
+      
+      <!-- Video container for scanner -->
+      <div id="interactive" class="viewport"></div>
+      
+      <form id="barcodeForm" autocomplete="off">
+        <div class="subtitle" aria-label="Judul Transaksi Manual">
+          <!-- Clipboard list icon with pulse animation -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M9 2H15V4H19C20.1 4 21 4.9 21 6V20C21 21.1 20.1 22 19 22H5C3.9 22 3 21.1 3 20V6C3 4.9 3.9 4 5 4H9V2ZM5 6V20H19V6H5ZM8 10H16V12H8V10ZM8 14H16V16H8V14Z"/>
+          </svg>
+          Transaksi Manual
+        </div>
+
+        <!-- Input nama barang dengan autocomplete -->
+        <div class="input-group">
+          <label for="namaBarang">Nama Barang</label>
+          <div class="input-icon-wrapper">
+            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M21 16V8c0-.55-.45-1-1h-3V5a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v2H4c-.55 0-1 .45-1 1v8a3.98 3.98 0 0 0 2 3.46V21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1.54A3.98 3.98 0 0 0 21 16zm-6-5H9v-2h6v2zm4 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
             </svg>
-            Transaksi Manual
+            <input type="text" id="namaBarang" name="namaBarang" placeholder="Masukkan nama barang" onkeyup="searchProduct(this.value)" autocomplete="off" />
           </div>
+          <!-- Container untuk daftar rekomendasi produk -->
+          <div id="productSuggestions" class="suggestions-container"></div>
+        </div>
 
-          <!-- Input nama barang dengan autocomplete -->
-          <div class="input-group">
-            <label for="namaBarang">Nama Barang</label>
-            <div class="input-icon-wrapper">
-              <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M21 16V8c0-.55-.45-1-1-1h-3V5a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v2H4c-.55 0-1 .45-1 1v8a3.98 3.98 0 0 0 2 3.46V21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1.54A3.98 3.98 0 0 0 21 16zm-6-5H9v-2h6v2zm4 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
-              </svg>
-              <input type="text" id="namaBarang" name="namaBarang" placeholder="Masukkan nama barang" onkeyup="searchProduct(this.value)" autocomplete="off" />
-            </div>
-            <!-- Container untuk daftar rekomendasi produk -->
-            <div id="productSuggestions" class="suggestions-container"></div>
+        <!-- Input brand yang akan diisi otomatis -->
+        <div class="input-group">
+          <label for="brand">Brand</label>
+          <div class="input-icon-wrapper">
+            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10a10 10 0 0 0 0-20zM8.5 11h1v3.5c0 .55.45 1 1 1s1-.45 1-1V11h1v3.5c0 1.38-1.12 2.5-2.5 2.5S8.5 15.88 8.5 14.5V11z"/>
+            </svg>
+            <input type="text" id="brand" name="brand" placeholder="Brand akan muncul otomatis" readonly />
           </div>
+        </div>
+        
+        <!-- Tombol untuk memproses produk -->
+        <div class="button-container">
+          <button type="button" id="processProductBtn" class="process-btn" onclick="processSelectedProduct()">
+            Proses Produk
+            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  const modal = document.getElementById('scanModal');
 
-          <!-- Input brand yang akan diisi otomatis -->
-          <div class="input-group">
-            <label for="brand">Brand</label>
-            <div class="input-icon-wrapper">
-              <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10a10 10 0 0 0 0-20zM8.5 11h1v3.5c0 .55.45 1 1 1s1-.45 1-1V11h1v3.5c0 1.38-1.12 2.5-2.5 2.5S8.5 15.88 8.5 14.5V11z"/>
-              </svg>
-              <input type="text" id="brand" name="brand" placeholder="Brand akan muncul otomatis" readonly />
-            </div>
-          </div>
-          
-          <!-- Tombol untuk memproses produk -->
-          <div class="button-container">
-            <button type="button" id="processProductBtn" class="process-btn" onclick="processSelectedProduct()">
-              Proses Produk
-              <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
-              </svg>
-            </button>
-          </div>
-        </form>
-      </div>
-    `;
-    
-    const modal = document.getElementById('scanModal');
+  // Tampilkan overlay
+  overlay.classList.add('active');
+  overlay.setAttribute('aria-hidden', 'false');
 
-    // Tampilkan overlay
-    overlay.classList.add('active');
-    overlay.setAttribute('aria-hidden', 'false');
+  // Animasikan modal ke tengah layar dengan scale 1
+  const centerLeft = (window.innerWidth - modal.offsetWidth) / 2;
+  const centerTop = (window.innerHeight - modal.offsetHeight) / 2;
 
-    // Animasikan modal ke tengah layar dengan scale 1
-    const centerLeft = (window.innerWidth - modal.offsetWidth) / 2;
-    const centerTop = (window.innerHeight - modal.offsetHeight) / 2;
+  modal.style.left = `${centerLeft}px`;
+  modal.style.top = `${centerTop}px`;
+  modal.classList.add('active');
 
-    modal.style.left = `${centerLeft}px`;
-    modal.style.top = `${centerTop}px`;
-    modal.classList.add('active');
+  // Mulai scanner otomatis setelah modal tampil
+  setTimeout(() => {
+    startQuaggaScanner();
+  }, 100);
+}
 
-    // Mulai scanner otomatis setelah modal tampil
-    setTimeout(() => {
-      startQuaggaScanner();
-    }, 100);
+// Quagga.js Scanner functions
+let isScanning = false;
+
+
+// Function untuk memulai scanner barcode - IMPROVED VERSION
+function startQuaggaScanner() {
+  console.log("Memulai scanner Quagga");
+  
+  if (isScanning) {
+    console.log("Scanner sudah aktif, tidak perlu memulai ulang");
+    return;
   }
 
+  const scannerContainer = document.getElementById('interactive');
+  if (!scannerContainer) {
+    console.error("Elemen container scanner tidak ditemukan");
+    return;
+  }
+  
+  scannerContainer.style.display = 'block';
+  isScanning = true;
 
-  // Function untuk memulai scanner barcode
-  function startQuaggaScanner() {
-    console.log("Memulai scanner Quagga");
-    
-    if (isScanning) {
-      console.log("Scanner sudah aktif, tidak perlu memulai ulang");
+  // Konfigurasi yang lebih kompatibel seperti databarang.html
+  const config = {
+    inputStream: {
+      type: "LiveStream",
+      constraints: {
+        width: { min: 320, ideal: 640, max: 1920 },
+        height: { min: 240, ideal: 480, max: 1080 },
+        facingMode: "environment", // Kamera belakang
+        aspectRatio: { min: 1, max: 2 }
+      },
+      target: document.querySelector('#interactive'),
+      singleChannel: false // Penting untuk performa yang lebih baik
+    },
+    locator: {
+      patchSize: "medium",
+      halfSample: true
+    },
+    numOfWorkers: 2, // Meningkatkan performa
+    decoder: {
+      readers: [
+        "code_128_reader",
+        "ean_reader",
+        "ean_8_reader",
+        "code_39_reader",
+        "upc_reader",
+        "upc_e_reader"
+      ],
+      debug: {
+        drawBoundingBox: true,
+        showFrequency: true, // Menampilkan lebih banyak debug info
+        drawScanline: true,
+        showPattern: true
+      }
+    },
+    locate: true
+  };
+
+  Quagga.init(config, function(err) {
+    if (err) {
+      console.error("Error initializing Quagga:", err);
+      alert('Tidak dapat mengakses kamera. Pastikan izin kamera telah diberikan.');
+      stopQuaggaScanner();
       return;
     }
-
-    const scannerContainer = document.getElementById('interactive');
-    if (!scannerContainer) {
-      console.error("Elemen container scanner tidak ditemukan");
-      return;
-    }
     
-    scannerContainer.style.display = 'block';
+    console.log("Quagga berhasil diinisialisasi");
+    Quagga.start();
+    
+    // Tambahkan indikator visual bahwa scanner aktif
+    const viewportElement = document.querySelector('.viewport');
+    if (viewportElement) {
+      viewportElement.classList.add('scanner-active');
+    }
+  });
 
-    Quagga.init({
-      inputStream: {
-        type: "LiveStream",
-        constraints: {
-          facingMode: "environment",
-          width: { min: 320 },
-          height: { min: 240 },
-          aspectRatio: { min: 1, max: 2 }
-        },
-        target: scannerContainer,
-        area: { // Define scan area size
-          top: "10%",
-          right: "10%",
-          left: "10%",
-          bottom: "10%"
-        }
-      },
-      decoder: {
-        readers: [
-          "code_128_reader",
-          "ean_reader",
-          "ean_8_reader",
-          "code_39_reader",
-          "upc_reader",
-          "upc_e_reader"
-        ],
-        debug: {
-          drawBoundingBox: true,
-          showFrequency: false,
-          drawScanline: true,
-          showPattern: false
-        }
-      },
-      locate: true
-    }, function(err) {
-      if (err) {
-        console.error("Error initializing Quagga:", err);
-        alert('Gagal menginisialisasi scanner: ' + err);
-        return;
-      }
-      
-      console.log("Quagga berhasil diinisialisasi");
-      Quagga.start();
-      isScanning = true;
-      
-      // Tambahkan indikator visual bahwa scanner aktif
-      const viewportElement = document.querySelector('.viewport');
-      if (viewportElement) {
-        viewportElement.classList.add('scanner-active');
-      }
-    });
+  // Event listener untuk deteksi barcode
+  Quagga.onDetected(onBarcodeDetected);
 
-    // PENTING: Pastikan event listener untuk deteksi barcode hanya didaftarkan sekali
+  // Event listener untuk proses visual overlay - sama seperti databarang.html
+  Quagga.onProcessed(function(result) {
+    var drawingCtx = Quagga.canvas.ctx.overlay,
+        drawingCanvas = Quagga.canvas.dom.overlay;
+
+    if (result) {
+      if (result.boxes) {
+        drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+        result.boxes.filter(function (box) {
+          return box !== result.box;
+        }).forEach(function (box) {
+          Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
+        });
+      }
+
+      if (result.box) {
+        Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
+      }
+
+      if (result.codeResult && result.codeResult.code) {
+        Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, {color: 'red', lineWidth: 3});
+      }
+    }
+  });
+}
+
+// Function untuk menghentikan scanner - IMPROVED VERSION
+function stopQuaggaScanner() {
+  if (!isScanning) return;
+
+  try {
     Quagga.offDetected(onBarcodeDetected);
-    Quagga.onDetected(onBarcodeDetected);
-  }
- // Function untuk menutup modal
-  function closeModal() {
-    console.log("Menutup modal scanner");
+    Quagga.offProcessed(); // Menghentikan event onProcessed juga
+    Quagga.stop();
     
-    // Hentikan scanner jika aktif
-    stopQuaggaScanner();
-    
-    const overlay = document.getElementById('overlay');
-    const scanModal = document.getElementById('scanModal');
-    
-    if (scanModal) {
-      scanModal.classList.remove('active');
+    // Clear canvas
+    const canvas = document.querySelector('#interactive canvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     
-    // PENTING: Jangan segera menghapus overlay, tunggu transisi selesai
-    setTimeout(() => {
-      if (overlay) {
-        overlay.classList.remove('active');
-        overlay.setAttribute('aria-hidden', 'true');
-      }
-    }, 300);
-    
-    // Reset variabel selectedProductId
-    selectedProductId = null;
+  } catch (error) {
+    console.error('Error stopping Quagga:', error);
   }
+  
+  isScanning = false;
+  
+  const scannerContainer = document.getElementById('interactive');
+  if (scannerContainer) {
+    scannerContainer.style.display = 'none';
+  }
+  
+  // Hapus indikator visual
+  const viewportElement = document.querySelector('.viewport');
+  if (viewportElement) {
+    viewportElement.classList.remove('scanner-active');
+  }
+}
+
+// Function untuk menutup modal
+function closeModal() {
+  console.log("Menutup modal scanner");
+  
+  // Hentikan scanner jika aktif
+  stopQuaggaScanner();
+  
+  const overlay = document.getElementById('overlay');
+  const scanModal = document.getElementById('scanModal');
+  
+  if (scanModal) {
+    scanModal.classList.remove('active');
+  }
+  
+  // PENTING: Jangan segera menghapus overlay, tunggu transisi selesai
+  setTimeout(() => {
+    if (overlay) {
+      overlay.classList.remove('active');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+  }, 300);
+  
+  // Reset variabel selectedProductId
+  selectedProductId = null;
+}
 
 // Fungsi pencarian produk realtime berdasarkan input nama
 // Fungsi pencarian produk realtime berdasarkan input nama
